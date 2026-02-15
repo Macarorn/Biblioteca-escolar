@@ -24,6 +24,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _userSearchController = TextEditingController();
   String _bookSearchQuery = '';
+  String? _selectedCategoryFilter;
+  bool _showAvailableOnly = false;
 
   // Data for loans
   final List<Map<String, dynamic>> _loans = [
@@ -371,6 +373,94 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showFilterDialog() {
+    // Get unique categories
+    final categories =
+        _books.map((b) => b['category'] as String).toSet().toList()..sort();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        String? tempCategory = _selectedCategoryFilter;
+        bool tempAvailable = _showAvailableOnly;
+
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFFF3EFE7),
+              title: const Text(
+                'Filtros',
+                style: TextStyle(color: Color(0xFF4E342E)),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: tempCategory,
+                    decoration: const InputDecoration(labelText: 'Categoría'),
+                    dropdownColor: const Color(0xFFF3EFE7),
+                    items: [
+                      const DropdownMenuItem<String>(
+                        value: null,
+                        child: Text('Todas'),
+                      ),
+                      ...categories.map(
+                        (c) => DropdownMenuItem(value: c, child: Text(c)),
+                      ),
+                    ].toList(),
+                    onChanged: (v) => setState(() => tempCategory = v),
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Solo Disponibles'),
+                    value: tempAvailable,
+                    activeColor: const Color(0xFF8D7B68),
+                    onChanged: (v) => setState(() => tempAvailable = v),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      tempCategory = null;
+                      tempAvailable = false;
+                    });
+                  },
+                  child: const Text(
+                    'Limpiar',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Cancelar',
+                    style: TextStyle(color: Color(0xFF4E342E)),
+                  ),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF8D7B68),
+                    foregroundColor: Colors.white,
+                  ),
+                  onPressed: () {
+                    this.setState(() {
+                      _selectedCategoryFilter = tempCategory;
+                      _showAvailableOnly = tempAvailable;
+                    });
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Aplicar'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -1071,7 +1161,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
       final title = (book['title'] as String).toLowerCase();
       final author = (book['author'] as String).toLowerCase();
       final category = (book['category'] as String).toLowerCase();
-      return title.contains(q) || author.contains(q) || category.contains(q);
+
+      bool matchesQuery =
+          title.contains(q) || author.contains(q) || category.contains(q);
+      bool matchesCategory =
+          _selectedCategoryFilter == null ||
+          book['category'] == _selectedCategoryFilter;
+      bool matchesAvailability =
+          !_showAvailableOnly || (book['available'] as int) > 0;
+
+      return matchesQuery && matchesCategory && matchesAvailability;
     }).toList();
 
     return _buildManagementLayout(
@@ -1109,10 +1208,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  onPressed: () {
-                    // Show filter dialog
-                  },
-                  icon: const Icon(Icons.filter_list),
+                  onPressed: _showFilterDialog,
+                  icon: Icon(
+                    Icons.filter_list,
+                    color:
+                        (_selectedCategoryFilter != null || _showAvailableOnly)
+                        ? const Color(0xFF8D7B68)
+                        : Colors.black,
+                  ),
                   tooltip: 'Filtros',
                 ),
               ],
