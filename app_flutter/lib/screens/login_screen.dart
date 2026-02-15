@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'student_dashboard.dart';
 import 'teacher_dashboard.dart';
-import 'librarian_dashboard.dart';
 import 'admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -53,22 +52,24 @@ class _LoginScreenState extends State<LoginScreen> {
       } else if (documento.startsWith('3')) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) =>
-                const LibrarianDashboard(userName: 'Carlos Ramírez'),
+            builder: (context) => const AdminDashboard(
+              userName: 'Carlos Ramírez',
+              userRole: 'bibliotecario',
+            ),
           ),
         );
       } else if (documento.startsWith('4')) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) =>
-                const AdminDashboard(userName: 'Ana Martínez'),
+            builder: (context) => const AdminDashboard(
+              userName: 'Ana Martínez',
+              userRole: 'administrador',
+            ),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Interfaz para este usuario aún no implementada'),
-          ),
+          const SnackBar(content: Text('Documento no reconocido')),
         );
       }
     } else {
