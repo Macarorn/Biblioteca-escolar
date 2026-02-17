@@ -1,0 +1,185 @@
+----------Tabla libros----------
+
+1-Cómo probar los filtros
+Ejemplos:
+GET http://localhost:3000/libros
+GET http://localhost:3000/libros?titulo=Harry
+GET http://localhost:3000/libros?autor=Rowling
+GET http://localhost:3000/libros?area=Programación
+GET http://localhost:3000/libros?titulo=Code&autor=Martin
+
+
+
+2-Obtener todos los libros
+GET http://localhost:3000/libros
+
+
+3-Obtener libro por ID
+GET http://localhost:3000/libros/1
+GET http://localhost:3000/libros/2
+GET http://localhost:3000/libros/3
+GET http://localhost:3000/libros/4
+GET http://localhost:3000/libros/5
+
+
+4-Crear libro
+POST http://localhost:3000/libros
+JSON:
+{
+  "codigo_libro": "L006",
+  "titulo": "Node.js Profesional",
+  "autor": "Juan Pérez",
+  "area": "Programación",
+  "anio_publicacion": 2023,
+  "estado": "activo"
+}
+
+
+5-Actualizar libro
+PUT http://localhost:3000/libros/6
+JSON:
+{
+  "codigo_libro": "L001",
+  "titulo": "Cien años de soledad - Edición Actualizada",
+  "autor": "Gabriel García Márquez",
+  "area": "Literatura",
+  "anio_publicacion": 1967,
+  "estado": "activo"
+}
+
+
+6-Eliminar libro
+DELETE http://localhost:3000/libros/6
+
+
+
+----------Tabla ejemplares----------
+1-Obtener todos los ejemplares
+GET http://localhost:3000/ejemplares
+
+
+2-Obtener ejemplar por ID
+GET http://localhost:3000/ejemplares/1
+
+
+3-Obtener ejemplares de un libro
+GET http://localhost:3000/libros/1/ejemplares
+
+
+4-Ver disponibilidad de un libro
+GET http://localhost:3000/libros/1/disponibilidad
+
+
+5-Crear ejemplar
+POST http://localhost:3000/ejemplares
+JSON:
+{
+  "id_libro": 1,
+  "codigo_ejemplar": "EJ-011",
+  "condicion_fisica": "bueno",
+  "disponibilidad": "disponible"
+}
+
+
+6-Actualizar un ejemplar
+PUT http://localhost:3000/ejemplares/1
+JSON:
+{
+  "id_libro": 1,
+  "codigo_ejemplar": "EJ-001-ACTUALIZADO",
+  "condicion_fisica": "regular",
+  "disponibilidad": "prestado"
+}
+
+
+Eliminar un ejemplar
+DELETE http://localhost:3000/ejemplares/1
+
+
+
+----------Tabla solicitudes_prestamo----------
+1-Obtener todas las solicitudes
+GET http://localhost:3000/solicitudes
+
+
+2-Filtrar por estado
+GET http://localhost:3000/solicitudes?estado=pendiente
+GET http://localhost:3000/solicitudes?estado=aprobada
+
+
+3-Obtener por ID
+GET http://localhost:3000/solicitudes/1
+
+
+4-Crear solicitud
+POST http://localhost:3000/solicitudes
+JSON:
+{
+  "id_usuario": 1,
+  "id_libro": 2
+}
+
+5-Cambiar estado
+PUT http://localhost:3000/solicitudes/1/estado
+JSON:
+{
+  "estado": "aprobada"
+}
+
+
+
+----------Tabla prestamos----------
+1-Obtener todos
+GET http://localhost:3000/prestamos
+
+
+2-Obtener por ID
+GET http://localhost:3000/prestamos/1
+
+
+3-Crear préstamo
+POST http://localhost:3000/prestamos
+JSON:
+{
+  "id_usuario": 1,
+  "id_ejemplar": 3,
+  "id_solicitud": 1
+}
+
+
+4-Cambiar estado a devuelto
+PUT http://localhost:3000/prestamos/1/estado
+JSON:
+{
+  "estado": "devuelto"
+}
+
+
+5-Ver préstamos vencidos
+GET http://localhost:3000/prestamos/vencidos
+Actualizar base de datos para encontrar prestamos vencido:
+
+Use biblioteca_escolar;
+
+UPDATE prestamos
+SET fecha_devolucion = '2024-01-01',
+    estado = 'activo'
+WHERE id_prestamo = 1;
+
+
+
+----------Tabla Devoluciones----------
+1-Obtener todas
+GET http://localhost:3000/devoluciones
+
+
+2-Obtener por ID
+GET http://localhost:3000/devoluciones/1
+
+
+3-Registrar devolución
+POST http://localhost:3000/prestamos/1/devolver
+JSON:
+{
+  "observaciones": "Libro devuelto en buen estado"
+}
