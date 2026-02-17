@@ -13,6 +13,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // ── Colores reutilizables ──
+  static const _backgroundColor = Color(0xFFEAE2D7);
+  static const _cardColor = Color(0xFFF3EFE7);
+  static const _primaryColor = Color(0xFF8D7B68);
+  static const _textColor = Color(0xFF4E342E);
+  static const _inputFillColor = Color(0xFFFAF9F6);
+  static const _accentColor = Color(0xFFD7CCC8);
+
   final _documentoController = TextEditingController();
   final _contrasenaController = TextEditingController();
   bool _obscurePassword = true;
@@ -79,45 +87,10 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _loginAs(String role) {
-    String doc = '';
-    String pass = '';
-
-    switch (role) {
-      case 'student':
-        doc = '1001';
-        pass = '1001';
-        break;
-      case 'teacher':
-        doc = '2001';
-        pass = '2001';
-        break;
-      case 'librarian':
-        doc = '3001';
-        pass = '3001';
-        break;
-      case 'admin':
-        doc = '4001';
-        pass = '4001';
-        break;
-    }
-
-    _documentoController.text = doc;
-    _contrasenaController.text = pass;
-    _handleSubmit();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Colors based on the image provided
-    final backgroundColor = Color(0xFFEAE2D7);
-    final cardColor = Color(0xFFF3EFE7); // Light cream/beige
-    final primaryColor = Color(0xFF8D7B68); // Brownish button color
-    final textColor = Color(0xFF4E342E); // Dark brown text
-    final inputFillColor = Color(0xFFFAF9F6);
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: _backgroundColor,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -131,11 +104,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   vertical: 48,
                 ),
                 decoration: BoxDecoration(
-                  color: cardColor,
+                  color: _cardColor,
                   borderRadius: BorderRadius.circular(32),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -148,22 +121,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 64,
                       height: 64,
                       decoration: BoxDecoration(
-                        color: Color(0xFFD7CCC8),
+                        color: _accentColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.menu_book_rounded,
-                        color: textColor,
+                        color: _textColor,
                         size: 32,
                       ),
                     ),
                     const SizedBox(height: 24),
 
                     // Title
-                    Text(
+                    const Text(
                       '¡Bienvenido!',
                       style: TextStyle(
-                        color: textColor,
+                        color: _textColor,
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
@@ -172,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Text(
                       'Accede a tu biblioteca escolar',
                       style: TextStyle(
-                        color: textColor.withOpacity(0.6),
+                        color: _textColor.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
@@ -184,7 +157,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Documento',
                         style: TextStyle(
-                          color: textColor.withOpacity(0.8),
+                          color: _textColor.withValues(alpha: 0.8),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -195,12 +168,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _documentoController,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: inputFillColor,
+                        fillColor: _inputFillColor,
                         hintText: 'Ingresa tu identificación',
                         hintStyle: TextStyle(color: Colors.grey.shade400),
-                        prefixIcon: Icon(
+                        prefixIcon: const Icon(
                           Icons.badge_outlined,
-                          color: primaryColor,
+                          color: _primaryColor,
                         ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -218,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Text(
                         'Contraseña',
                         style: TextStyle(
-                          color: textColor.withOpacity(0.8),
+                          color: _textColor.withValues(alpha: 0.8),
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
@@ -230,15 +203,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       obscureText: _obscurePassword,
                       decoration: InputDecoration(
                         filled: true,
-                        fillColor: inputFillColor,
+                        fillColor: _inputFillColor,
                         hintText: '••••••••',
                         hintStyle: TextStyle(
                           color: Colors.grey.shade400,
                           letterSpacing: 2,
                         ),
-                        prefixIcon: Icon(
+                        prefixIcon: const Icon(
                           Icons.lock_outline,
-                          color: primaryColor,
+                          color: _primaryColor,
                         ),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -277,13 +250,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     Align(
                       alignment: Alignment.centerRight,
                       child: GestureDetector(
-                        onTap: () {
-                          // TODO: Implement forgot password
-                        },
+                        onTap: () {},
                         child: Text(
                           '¿Olvidaste tu contraseña?',
                           style: TextStyle(
-                            color: textColor.withOpacity(0.6),
+                            color: _textColor.withValues(alpha: 0.6),
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
@@ -299,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ElevatedButton(
                         onPressed: _handleSubmit,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
+                          backgroundColor: _primaryColor,
                           foregroundColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),

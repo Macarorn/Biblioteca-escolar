@@ -97,12 +97,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   Widget _buildContent(Color textColor) {
     if (_selectedIndex == 0) {
-      return Center(
-        child: Text(
-          "Buscador de libros pendiente",
-          style: TextStyle(color: textColor),
-        ),
-      ); // Placeholder fix
+      return _buildSearchBooks(textColor);
     } else if (_selectedIndex == 1) {
       return _buildMyRequests(textColor);
     } else {
@@ -141,7 +136,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 Text(
                   'Hola, ${widget.userName}',
                   style: TextStyle(
-                    color: textColor.withOpacity(0.6),
+                    color: textColor.withValues(alpha: 0.6),
                     fontSize: 12,
                   ),
                   overflow: TextOverflow.ellipsis,
@@ -200,7 +195,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
         borderRadius: BorderRadius.circular(50),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -253,7 +248,9 @@ class _StudentDashboardState extends State<StudentDashboard> {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? Colors.white : textColor.withOpacity(0.5),
+                color: isSelected
+                    ? Colors.white
+                    : textColor.withValues(alpha: 0.5),
               ),
               if (MediaQuery.of(context).size.width > 350) ...[
                 // Only show text if mostly wide enough
@@ -265,7 +262,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     fontSize: 12,
                     color: isSelected
                         ? Colors.white
-                        : textColor.withOpacity(0.5),
+                        : textColor.withValues(alpha: 0.5),
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -283,13 +280,16 @@ class _StudentDashboardState extends State<StudentDashboard> {
       decoration: BoxDecoration(
         color: const Color(0xFFF3EFE7),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0))
+        border: Border.all(color: const Color(0xFFE0E0E0)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
       child: Center(
         child: Text(
           message,
-          style: TextStyle(color: textColor.withOpacity(0.5), fontSize: 14),
+          style: TextStyle(
+            color: textColor.withValues(alpha: 0.5),
+            fontSize: 14,
+          ),
           textAlign: TextAlign.center,
         ),
       ),
@@ -311,7 +311,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
         const SizedBox(height: 4),
         Text(
           'Historial de solicitudes',
-          style: TextStyle(color: textColor.withOpacity(0.6)),
+          style: TextStyle(color: textColor.withValues(alpha: 0.6)),
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -343,7 +343,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               const SizedBox(height: 4),
               Text(
                 'Libros prestados actualmente',
-                style: TextStyle(color: textColor.withOpacity(0.6)),
+                style: TextStyle(color: textColor.withValues(alpha: 0.6)),
               ),
               const SizedBox(height: 16),
               Expanded(
@@ -423,7 +423,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookDetailScreen(book: book),
+                      builder: (context) =>
+                          BookDetailScreen(book: book, userRole: 'estudiante'),
                     ),
                   );
                 },
@@ -501,15 +502,45 @@ class _StudentDashboardState extends State<StudentDashboard> {
                             ),
                             const SizedBox(height: 8),
                             ElevatedButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        BookDetailScreen(book: book),
-                                  ),
-                                );
-                              },
+                              onPressed: (book['available'] as int) > 0
+                                  ? () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (ctx) => AlertDialog(
+                                          title: const Text(
+                                            'Confirmar Solicitud',
+                                          ),
+                                          content: Text(
+                                            '¿Deseas solicitar el libro "${book['title']}"?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(ctx),
+                                              child: const Text('Cancelar'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () {
+                                                Navigator.pop(ctx);
+                                                ScaffoldMessenger.of(
+                                                  context,
+                                                ).showSnackBar(
+                                                  const SnackBar(
+                                                    content: Text(
+                                                      'Solicitud enviada correctamente',
+                                                    ),
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                  ),
+                                                );
+                                              },
+                                              child: const Text('Solicitar'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                  : null,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF0F172A),
                                 foregroundColor: Colors.white,

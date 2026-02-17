@@ -2,14 +2,31 @@
 
 class BookDetailScreen extends StatefulWidget {
   final Map<String, dynamic> book;
+  final String userRole;
 
-  const BookDetailScreen({super.key, required this.book});
+  const BookDetailScreen({
+    super.key,
+    required this.book,
+    this.userRole = 'administrador',
+  });
 
   @override
   State<BookDetailScreen> createState() => _BookDetailScreenState();
 }
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
+  // ── Colores reutilizables ──
+  static const _backgroundColor = Color(0xFFEAE2D7);
+  static const _cardColor = Color(0xFFF3EFE7);
+  static const _textColor = Color(0xFF4E342E);
+  static const _primaryColor = Color(0xFF8D7B68);
+
+  // ── Opciones de condición reutilizables ──
+  static const _conditionOptions = ['excelente', 'bueno', 'regular', 'malo'];
+
+  bool get _isGestor =>
+      widget.userRole == 'administrador' || widget.userRole == 'bibliotecario';
+
   // Datos simulados para los ejemplares
   final List<Map<String, dynamic>> _copies = [
     {'code': 'CAS-001', 'condition': 'excelente', 'status': 'Disponible'},
@@ -19,239 +36,258 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     {'code': 'CAS-005', 'condition': 'excelente', 'status': 'Prestado'},
   ];
 
+  // ── Helpers para evitar repetición ──
+
+  List<DropdownMenuItem<String>> _buildConditionItems() {
+    return _conditionOptions
+        .map(
+          (c) => DropdownMenuItem(
+            value: c,
+            child: Text(c, style: const TextStyle(color: _textColor)),
+          ),
+        )
+        .toList();
+  }
+
+  List<Widget> _buildDialogActions({
+    required VoidCallback onConfirm,
+    String confirmLabel = 'Confirmar',
+  }) {
+    return [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar', style: TextStyle(color: _textColor)),
+      ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _primaryColor,
+          foregroundColor: Colors.white,
+        ),
+        onPressed: onConfirm,
+        child: Text(confirmLabel),
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = const Color(0xFFEAE2D7);
-    final cardColor = const Color(0xFFF3EFE7);
-    final textColor = const Color(0xFF4E342E);
-    final primaryColor = const Color(0xFF8D7B68);
-
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: _backgroundColor,
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: textColor),
+          icon: const Icon(Icons.arrow_back, color: _textColor),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
+        title: const Text(
           'Detalle del Libro',
           style: TextStyle(
-            color: textColor,
+            color: _textColor,
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.edit, color: textColor),
-            onPressed: _showEditBookDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete, color: Colors.red),
-            onPressed: () {
-              // Confirm removal
-            },
-          ),
+          if (_isGestor) ...[
+            IconButton(
+              icon: const Icon(Icons.edit, color: _textColor),
+              onPressed: _showEditBookDialog,
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () => _showDeleteBookDialog(),
+            ),
+          ],
         ],
         titleSpacing: 0,
-        backgroundColor: cardColor,
+        backgroundColor: _cardColor,
         elevation: 0,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.book['title'],
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '${widget.book['author']} • ${widget.book['category']}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textColor.withOpacity(0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Text(
-                    'Descripción',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Obra maestra del realismo mágico que narra la historia de la familia Buendía.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: textColor.withOpacity(0.8),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Ejemplares (${widget.book['available']} de ${widget.book['total']} disponibles)',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: textColor,
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          Icons.add_circle_outline,
-                          color: primaryColor,
-                        ),
-                        onPressed: _showAddCopyDialog,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ..._copies.map(
-                    (copy) => _buildCopyItem(
-                      copy,
-                      cardColor,
-                      textColor,
-                      primaryColor,
-                    ),
-                  ),
-                ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              widget.book['title'],
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: _textColor,
               ),
             ),
-          ),
-        ],
+            const SizedBox(height: 8),
+            Text(
+              '${widget.book['author']} • ${widget.book['category']}',
+              style: TextStyle(
+                fontSize: 14,
+                color: _textColor.withValues(alpha: 0.6),
+              ),
+            ),
+            const SizedBox(height: 32),
+            const Text(
+              'Descripción',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: _textColor,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Obra maestra del realismo mágico que narra la historia de la familia Buendía.',
+              style: TextStyle(
+                fontSize: 14,
+                color: _textColor.withValues(alpha: 0.8),
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Ejemplares (${widget.book['available']} de ${widget.book['total']} disponibles)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _textColor,
+                  ),
+                ),
+                if (_isGestor)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.add_circle_outline,
+                      color: _primaryColor,
+                    ),
+                    onPressed: _showAddCopyDialog,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ..._copies.map((copy) => _buildCopyItem(copy)),
+            if (!_isGestor && (widget.book['available'] as int) > 0) ...[
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: _showSolicitarDialog,
+                  icon: const Icon(Icons.send),
+                  label: const Text(
+                    'Solicitar Préstamo',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryColor,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildCopyItem(
-    Map<String, dynamic> copy,
-    Color cardColor,
-    Color textColor,
-    Color primaryColor,
-  ) {
+  Widget _buildCopyItem(Map<String, dynamic> copy) {
     final isAvailable = copy['status'] == 'Disponible';
     final isNotReturned = copy['status'] == 'No Entregado';
-    Color statusColor = isAvailable
+    final statusColor = isAvailable
         ? Colors.green
         : (isNotReturned ? Colors.red : Colors.orange);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: _cardColor,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    copy['code'],
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: textColor,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Condición: ${copy['condition']}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: textColor.withOpacity(0.6),
-                    ),
-                  ),
-                ],
+              Text(
+                copy['code'],
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: _textColor,
+                ),
               ),
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      copy['status'],
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
+              const SizedBox(height: 4),
+              Text(
+                'Condición: ${copy['condition']}',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _textColor.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Text(
+                  copy['status'],
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
-                  if (!isAvailable) ...[
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: Icon(
-                        Icons.system_update_alt,
-                        color: primaryColor,
-                        size: 20,
+                ),
+              ),
+              if (_isGestor)
+                PopupMenuButton<String>(
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: _textColor.withValues(alpha: 0.5),
+                  ),
+                  color: _cardColor,
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _showEditCopyDialog(copy);
+                    } else if (value == 'delete') {
+                      setState(() {
+                        _copies.remove(copy);
+                        if (copy['status'] == 'Disponible') {
+                          widget.book['available']--;
+                        }
+                        widget.book['total']--;
+                      });
+                    }
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem(
+                      value: 'edit',
+                      child: Text(
+                        'Editar',
+                        style: TextStyle(color: _textColor),
                       ),
-                      tooltip: 'Registrar Devolución',
-                      onPressed: () => _showReturnDialog(copy),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text(
+                        'Eliminar',
+                        style: TextStyle(color: Colors.red),
+                      ),
                     ),
                   ],
-                  PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert,
-                      color: textColor.withOpacity(0.5),
-                    ),
-                    color: cardColor,
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showEditCopyDialog(copy);
-                      } else if (value == 'delete') {
-                        setState(() {
-                          _copies.remove(copy);
-                          if (copy['status'] == 'Disponible') {
-                            widget.book['available']--;
-                          }
-                          widget.book['total']--;
-                        });
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'edit',
-                        child: Text(
-                          'Editar',
-                          style: TextStyle(color: textColor),
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Text(
-                          'Eliminar',
-                          style: TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
             ],
           ),
         ],
@@ -259,66 +295,77 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     );
   }
 
-  void _showReturnDialog(Map<String, dynamic> copy) {
-    String newCondition = copy['condition'];
-    final cardColor = const Color(0xFFF3EFE7);
-    final textColor = const Color(0xFF4E342E);
-    final primaryColor = const Color(0xFF8D7B68);
-
+  void _showSolicitarDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: Text('Registrar Devolución', style: TextStyle(color: textColor)),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _cardColor,
+        title: const Text(
+          'Confirmar Solicitud',
+          style: TextStyle(color: _textColor),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Seleccione el estado actual del libro:',
-              style: TextStyle(color: textColor.withOpacity(0.8)),
+              '¿Deseas solicitar el préstamo de este libro?',
+              style: TextStyle(color: _textColor.withValues(alpha: 0.8)),
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: newCondition,
-              dropdownColor: cardColor,
-              decoration: InputDecoration(
-                labelText: 'Condición',
-                labelStyle: TextStyle(color: textColor.withOpacity(0.6)),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
+            const SizedBox(height: 12),
+            Text(
+              widget.book['title'],
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: _textColor,
               ),
-              items: ['excelente', 'bueno', 'regular', 'malo']
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(c, style: TextStyle(color: textColor)),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => newCondition = v!,
+            ),
+            Text(
+              widget.book['author'],
+              style: TextStyle(color: _textColor.withValues(alpha: 0.6)),
             ),
           ],
         ),
+        actions: _buildDialogActions(
+          confirmLabel: 'Solicitar',
+          onConfirm: () {
+            Navigator.pop(ctx);
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Solicitud enviada correctamente'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteBookDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _cardColor,
+        title: const Text('Confirmar', style: TextStyle(color: _textColor)),
+        content: Text('¿Eliminar el libro "${widget.book['title']}"?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(color: textColor)),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar', style: TextStyle(color: _textColor)),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-            ),
+          TextButton(
             onPressed: () {
-              setState(() {
-                copy['status'] = 'Disponible';
-                copy['condition'] = newCondition;
-              });
-              Navigator.pop(context);
+              Navigator.pop(ctx);
+              Navigator.pop(context); // Volver al listado
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Libro eliminado'),
+                  backgroundColor: Colors.red,
+                ),
+              );
             },
-            child: const Text('Confirmar Devolución'),
+            child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -331,15 +378,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final categoryController = TextEditingController(
       text: widget.book['category'],
     );
-    final cardColor = const Color(0xFFF3EFE7);
-    final textColor = const Color(0xFF4E342E);
-    final primaryColor = const Color(0xFF8D7B68);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: Text('Editar Libro', style: TextStyle(color: textColor)),
+        backgroundColor: _cardColor,
+        title: const Text('Editar Libro', style: TextStyle(color: _textColor)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -359,27 +403,17 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(color: textColor)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              setState(() {
-                widget.book['title'] = titleController.text;
-                widget.book['author'] = authorController.text;
-                widget.book['category'] = categoryController.text;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Guardar Cambios'),
-          ),
-        ],
+        actions: _buildDialogActions(
+          confirmLabel: 'Guardar Cambios',
+          onConfirm: () {
+            setState(() {
+              widget.book['title'] = titleController.text;
+              widget.book['author'] = authorController.text;
+              widget.book['category'] = categoryController.text;
+            });
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }
@@ -388,15 +422,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
     final codeController = TextEditingController(text: copy['code']);
     String condition = copy['condition'];
     String status = copy['status'];
-    final cardColor = const Color(0xFFF3EFE7);
-    final textColor = const Color(0xFF4E342E);
-    final primaryColor = const Color(0xFF8D7B68);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: Text('Editar Ejemplar', style: TextStyle(color: textColor)),
+        backgroundColor: _cardColor,
+        title: const Text(
+          'Editar Ejemplar',
+          style: TextStyle(color: _textColor),
+        ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -407,29 +441,25 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: condition,
-                dropdownColor: cardColor,
+                initialValue: condition,
+                dropdownColor: _cardColor,
                 decoration: const InputDecoration(labelText: 'Condición'),
-                items: ['excelente', 'bueno', 'regular', 'malo']
-                    .map(
-                      (c) => DropdownMenuItem(
-                        value: c,
-                        child: Text(c, style: TextStyle(color: textColor)),
-                      ),
-                    )
-                    .toList(),
+                items: _buildConditionItems(),
                 onChanged: (v) => condition = v!,
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: status,
-                dropdownColor: cardColor,
+                initialValue: status,
+                dropdownColor: _cardColor,
                 decoration: const InputDecoration(labelText: 'Estado'),
                 items: ['Disponible', 'Prestado', 'No Entregado']
                     .map(
                       (s) => DropdownMenuItem(
                         value: s,
-                        child: Text(s, style: TextStyle(color: textColor)),
+                        child: Text(
+                          s,
+                          style: const TextStyle(color: _textColor),
+                        ),
                       ),
                     )
                     .toList(),
@@ -438,35 +468,23 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             ],
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(color: textColor)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              setState(() {
-                // Adjust counters if status changes
-                if (copy['status'] == 'Disponible' && status != 'Disponible') {
-                  widget.book['available']--;
-                } else if (copy['status'] != 'Disponible' &&
-                    status == 'Disponible') {
-                  widget.book['available']++;
-                }
-
-                copy['code'] = codeController.text;
-                copy['condition'] = condition;
-                copy['status'] = status;
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Guardar'),
-          ),
-        ],
+        actions: _buildDialogActions(
+          confirmLabel: 'Guardar',
+          onConfirm: () {
+            setState(() {
+              if (copy['status'] == 'Disponible' && status != 'Disponible') {
+                widget.book['available']--;
+              } else if (copy['status'] != 'Disponible' &&
+                  status == 'Disponible') {
+                widget.book['available']++;
+              }
+              copy['code'] = codeController.text;
+              copy['condition'] = condition;
+              copy['status'] = status;
+            });
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }
@@ -476,15 +494,15 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
       text: 'CAS-00${_copies.length + 1}',
     );
     String condition = 'excelente';
-    final cardColor = const Color(0xFFF3EFE7);
-    final textColor = const Color(0xFF4E342E);
-    final primaryColor = const Color(0xFF8D7B68);
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: cardColor,
-        title: Text('Nuevo Ejemplar', style: TextStyle(color: textColor)),
+        backgroundColor: _cardColor,
+        title: const Text(
+          'Nuevo Ejemplar',
+          style: TextStyle(color: _textColor),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -494,46 +512,29 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: condition,
-              dropdownColor: cardColor,
+              initialValue: condition,
+              dropdownColor: _cardColor,
               decoration: const InputDecoration(labelText: 'Condición'),
-              items: ['excelente', 'bueno', 'regular', 'malo']
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(c, style: TextStyle(color: textColor)),
-                    ),
-                  )
-                  .toList(),
+              items: _buildConditionItems(),
               onChanged: (v) => condition = v!,
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar', style: TextStyle(color: textColor)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () {
-              setState(() {
-                _copies.add({
-                  'code': codeController.text,
-                  'condition': condition,
-                  'status': 'Disponible',
-                });
-                widget.book['available']++;
-                widget.book['total']++;
+        actions: _buildDialogActions(
+          confirmLabel: 'Añadir Ejemplar',
+          onConfirm: () {
+            setState(() {
+              _copies.add({
+                'code': codeController.text,
+                'condition': condition,
+                'status': 'Disponible',
               });
-              Navigator.pop(context);
-            },
-            child: const Text('Añadir Ejemplar'),
-          ),
-        ],
+              widget.book['available']++;
+              widget.book['total']++;
+            });
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }

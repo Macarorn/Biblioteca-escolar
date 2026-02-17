@@ -19,10 +19,7 @@ class MainApp extends StatelessWidget {
       ),
       home: LoginScreen(
         onLogin: (documento, contrasena) {
-          // Simulación de login - Aquí conectarías con tu lógica real
-          print('Intento de acceso: $documento');
-          // Retornamos true para permitir el acceso en esta prueba
-          // Puedes poner validaciones específicas aquí (ej: if documento == '1001'...)
+          debugPrint('Intento de acceso: $documento');
           return true;
         },
       ),
