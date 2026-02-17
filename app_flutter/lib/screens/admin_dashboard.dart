@@ -5,8 +5,7 @@ import 'login_screen.dart';
 
 class AdminDashboard extends StatefulWidget {
   final String userName;
-  final String
-  userRole; 
+  final String userRole;
 
   const AdminDashboard({
     super.key,
@@ -19,7 +18,7 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  //  Colores reutilizables 
+  //  Colores reutilizables
   static const _backgroundColor = Color(0xFFEAE2D7);
   static const _cardColor = Color(0xFFF3EFE7);
   static const _primaryColor = Color(0xFF8D7B68);
@@ -687,9 +686,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               } else if (value == 'logout') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(onLogin: (u, p) => true),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               }
             },

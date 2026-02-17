@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/change_password_dialog.dart';
-import 'login_screen.dart';
 import 'book_detail_screen.dart';
+import 'login_screen.dart';
 
 class StudentDashboard extends StatefulWidget {
   final String userName;
@@ -152,9 +152,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               } else if (value == 'logout') {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => LoginScreen(onLogin: (u, p) => true),
-                  ),
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
                 );
               }
             },
