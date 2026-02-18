@@ -154,7 +154,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => LoginScreen(onLogin: (u, p) => true),
+                    builder: (context) => const LoginScreen(),
                   ),
                 );
               }

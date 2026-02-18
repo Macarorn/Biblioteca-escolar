@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/session_provider.dart';
+import '../services/auth_service.dart';
+import 'admin_dashboard.dart';
 import 'student_dashboard.dart';
 import 'teacher_dashboard.dart';
-import 'admin_dashboard.dart';
 
 class LoginScreen extends StatefulWidget {
-  final bool Function(String documento, String contrasena) onLogin;
-
-  const LoginScreen({super.key, required this.onLogin});
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -21,69 +22,57 @@ class _LoginScreenState extends State<LoginScreen> {
   static const _inputFillColor = Color(0xFFFAF9F6);
   static const _accentColor = Color(0xFFD7CCC8);
 
-  final _documentoController = TextEditingController();
-  final _contrasenaController = TextEditingController();
+  final TextEditingController _documentoController = TextEditingController();
+  final TextEditingController _contrasenaController = TextEditingController();
   bool _obscurePassword = true;
-
   String _error = '';
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     setState(() => _error = '');
-
     final documento = _documentoController.text.trim();
     final contrasena = _contrasenaController.text.trim();
-
     if (documento.isEmpty || contrasena.isEmpty) {
-      if (mounted) {
-        setState(() => _error = 'Por favor complete todos los campos');
-      }
+      setState(() => _error = 'Por favor ingresa tus credenciales');
       return;
     }
-
-    final success = widget.onLogin(documento, contrasena);
-
-    if (success) {
-      if (documento.startsWith('1')) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final session = Provider.of<SessionProvider>(context, listen: false);
+    final result = await authService.login(documento, contrasena);
+    if (result['success'] == true) {
+      session.login(
+        userName: result['nombre'],
+        userRole: result['rol'],
+        token: result['token'],
+      );
+      if (!mounted) return;
+      // La navegacion interna que depende del rol
+      if (result['rol'] == 'estudiante') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) =>
-                const StudentDashboard(userName: 'Juan Pérez'),
+            builder: (context) => StudentDashboard(userName: result['nombre']),
           ),
         );
-      } else if (documento.startsWith('2')) {
+      } else if (result['rol'] == 'profesor') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) =>
-                const TeacherDashboard(userName: 'Prof. García'),
+            builder: (context) => TeacherDashboard(userName: result['nombre']),
           ),
         );
-      } else if (documento.startsWith('3')) {
+      } else if (result['rol'] == 'administrador' ||
+          result['rol'] == 'bibliotecario') {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => const AdminDashboard(
-              userName: 'Carlos Ramírez',
-              userRole: 'bibliotecario',
-            ),
-          ),
-        );
-      } else if (documento.startsWith('4')) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => const AdminDashboard(
-              userName: 'Ana Martínez',
-              userRole: 'administrador',
+            builder: (context) => AdminDashboard(
+              userName: result['nombre'],
+              userRole: result['rol'],
             ),
           ),
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Documento no reconocido')),
-        );
+        setState(() => _error = 'Rol no soportado');
       }
     } else {
-      if (mounted) {
-        setState(() => _error = 'Documento o contraseña incorrectos');
-      }
+      setState(() => _error = result['error'] ?? 'Error desconocido');
     }
   }
 
