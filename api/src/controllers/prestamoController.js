@@ -52,15 +52,17 @@ export const getPrestamoById = async (req, res) => {
 
 // POST /prestamos
 export const createPrestamo = async (req, res) => {
-  const { id_usuario, id_ejemplar, id_solicitud } = req.body;
+  const { id_usuario, id_ejemplar, id_solicitud, dias_prestamo } = req.body;
 
   try {
-    // 1️⃣ Crear préstamo
+    const dias = dias_prestamo || 15;
+
+    // 1️⃣ Crear préstamo con fecha de devolución estimada
     const [result] = await db.query(`
       INSERT INTO prestamos
-      (id_usuario, id_ejemplar, id_solicitud, fecha_prestamo, estado)
-      VALUES (?, ?, ?, CURRENT_DATE, 'activo')
-    `, [id_usuario, id_ejemplar, id_solicitud || null]);
+      (id_usuario, id_ejemplar, id_solicitud, fecha_prestamo, fecha_devolucion, estado)
+      VALUES (?, ?, ?, CURRENT_DATE, DATE_ADD(CURRENT_DATE, INTERVAL ? DAY), 'activo')
+    `, [id_usuario, id_ejemplar, id_solicitud || null, dias]);
 
     // 2️⃣ Cambiar disponibilidad del ejemplar a "prestado"
     await db.query(`

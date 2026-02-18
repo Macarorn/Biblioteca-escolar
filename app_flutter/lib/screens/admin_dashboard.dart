@@ -1,4 +1,6 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/libros_service.dart';
 import '../widgets/change_password_dialog.dart';
 import 'book_detail_screen.dart';
 import 'login_screen.dart';
@@ -34,64 +36,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
   String? _selectedCategoryFilter;
   bool _showAvailableOnly = false;
 
-  // Data for solicitudes
-  final List<Map<String, dynamic>> _solicitudes = [
-    {
-      'id': 1,
-      'usuario': 'Juan Pérez',
-      'libro': 'Cien Años de Soledad',
-      'ejemplar': 'CAS-001',
-      'fecha': '2026-02-15',
-      'estado': 'pendiente',
-    },
-    {
-      'id': 2,
-      'usuario': 'María González',
-      'libro': 'Don Quijote de la Mancha',
-      'ejemplar': 'DQM-002',
-      'fecha': '2026-02-16',
-      'estado': 'pendiente',
-    },
-    {
-      'id': 3,
-      'usuario': 'Carlos López',
-      'libro': 'Física para Secundaria',
-      'ejemplar': 'FPS-003',
-      'fecha': '2026-02-10',
-      'estado': 'aprobada',
-    },
-    {
-      'id': 4,
-      'usuario': 'Ana Torres',
-      'libro': 'Álgebra Básica',
-      'ejemplar': 'ALG-001',
-      'fecha': '2026-02-12',
-      'estado': 'rechazada',
-    },
-  ];
+  // ── Estado de carga ──
+  late LibrosService _librosService;
+  bool _dataLoaded = false;
+  bool _isLoadingBooks = false;
+  bool _isLoadingLoans = false;
+  bool _isLoadingSolicitudes = false;
 
-  // Data for loans
-  final List<Map<String, dynamic>> _loans = [
-    {
-      'book': 'Don Quijote de la Mancha',
-      'user': 'Juan Pérez',
-      'ejemplar': 'DQM-002',
-      'loanDate': '2026-02-01',
-      'returnDate': '2026-02-15',
-      'status': 'Prestado',
-    },
-    {
-      'book': 'Física para Secundaria',
-      'user': 'María González',
-      'ejemplar': 'FPS-003',
-      'loanDate': '2026-01-20',
-      'returnDate': '2026-01-27',
-      'status': 'Devuelto',
-      'condicionDevolucion': 'bueno',
-      'observaciones': '',
-      'fechaDevolucion': '2026-01-26',
-    },
-  ];
+  // ── Datos cargados del API ──
+  List<Map<String, dynamic>> _solicitudes = [];
+  List<Map<String, dynamic>> _loans = [];
+  List<Map<String, dynamic>> _books = [];
 
   final List<Map<String, dynamic>> _users = [
     {
@@ -111,44 +66,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
       'role': 'administrador',
       'doc': '4001',
       'email': 'ana@admin.com',
-    },
-  ];
-
-  final List<Map<String, dynamic>> _books = [
-    {
-      'title': 'Cien Años de Soledad',
-      'author': 'Gabriel García Márquez',
-      'category': 'Literatura',
-      'available': 3,
-      'total': 5,
-    },
-    {
-      'title': 'Don Quijote de la Mancha',
-      'author': 'Miguel de Cervantes',
-      'category': 'Literatura',
-      'available': 2,
-      'total': 4,
-    },
-    {
-      'title': 'Física para Secundaria',
-      'author': 'Antonio López',
-      'category': 'Ciencias',
-      'available': 5,
-      'total': 6,
-    },
-    {
-      'title': 'Historia Universal',
-      'author': 'Laura Fernández',
-      'category': 'Historia',
-      'available': 0,
-      'total': 3,
-    },
-    {
-      'title': 'Álgebra Básica',
-      'author': 'Roberto Sánchez',
-      'category': 'Matemáticas',
-      'available': 4,
-      'total': 4,
     },
   ];
 
@@ -207,6 +124,120 @@ class _AdminDashboardState extends State<AdminDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // _showChangePasswordDialog(mandatory: true);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_dataLoaded) {
+      _dataLoaded = true;
+      _librosService = context.read<LibrosService>();
+      _loadBooks();
+      _loadLoans();
+      _loadSolicitudes();
+    }
+  }
+
+  // ── Métodos de carga desde API ──
+
+  int _toInt(dynamic value, [int fallback = 0]) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  String _formatDate(dynamic date) {
+    if (date == null) return '';
+    return date.toString().split('T')[0];
+  }
+
+  Future<void> _loadBooks() async {
+    setState(() => _isLoadingBooks = true);
+    try {
+      final libros = await _librosService.getLibros();
+      final books = <Map<String, dynamic>>[];
+      for (final libro in libros) {
+        Map<String, dynamic> disp = {'total': 0, 'disponibles': 0};
+        try {
+          disp = await _librosService.getDisponibilidad(libro['id_libro']);
+        } catch (_) {}
+        books.add({
+          ...libro,
+          'id_libro': _toInt(libro['id_libro']),
+          'title': libro['titulo'] ?? '',
+          'author': libro['autor'] ?? '',
+          'category': libro['area'] ?? '',
+          'available': _toInt(disp['disponibles']),
+          'total': _toInt(disp['total']),
+        });
+      }
+      if (mounted)
+        setState(() {
+          _books = books;
+          _isLoadingBooks = false;
+        });
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoadingBooks = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error al cargar libros: $e')));
+      }
+    }
+  }
+
+  Future<void> _loadLoans() async {
+    setState(() => _isLoadingLoans = true);
+    try {
+      final prestamos = await _librosService.getPrestamos();
+      final loans = prestamos
+          .map(
+            (p) => <String, dynamic>{
+              ...p,
+              'book': p['titulo'] ?? '',
+              'user': '${p['nombre'] ?? ''} ${p['apellido'] ?? ''}'.trim(),
+              'ejemplar': p['codigo_ejemplar'] ?? '-',
+              'loanDate': _formatDate(p['fecha_prestamo']),
+              'returnDate': _formatDate(p['fecha_devolucion']),
+              'status': p['estado'] == 'activo' ? 'Prestado' : 'Devuelto',
+            },
+          )
+          .toList();
+      if (mounted)
+        setState(() {
+          _loans = loans;
+          _isLoadingLoans = false;
+        });
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingLoans = false);
+    }
+  }
+
+  Future<void> _loadSolicitudes() async {
+    setState(() => _isLoadingSolicitudes = true);
+    try {
+      final solis = await _librosService.getSolicitudes();
+      final solicitudes = solis
+          .map(
+            (s) => <String, dynamic>{
+              ...s,
+              'id': _toInt(s['id_solicitud']),
+              'usuario': '${s['nombre'] ?? ''} ${s['apellido'] ?? ''}'.trim(),
+              'libro': s['titulo'] ?? '',
+              'fecha': _formatDate(s['fecha_solicitud']),
+            },
+          )
+          .toList();
+      if (mounted) {
+        setState(() {
+          _solicitudes = solicitudes;
+          _isLoadingSolicitudes = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingSolicitudes = false);
+    }
   }
 
   void _showChangePasswordDialog({bool mandatory = false}) {
@@ -308,11 +339,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   void _showAddBookDialog({Map<String, dynamic>? book, int? index}) {
     final formKey = GlobalKey<FormState>();
+    final codigoController = TextEditingController(text: book?['codigo_libro']);
     final titleController = TextEditingController(text: book?['title']);
     final authorController = TextEditingController(text: book?['author']);
     final categoryController = TextEditingController(text: book?['category']);
-    final totalController = TextEditingController(
-      text: book?['total']?.toString(),
+    final yearController = TextEditingController(
+      text: book?['anio_publicacion']?.toString(),
     );
     final isEditing = book != null;
 
@@ -331,6 +363,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextFormField(
+                  controller: codigoController,
+                  decoration: const InputDecoration(labelText: 'Código'),
+                  validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                ),
+                TextFormField(
                   controller: titleController,
                   decoration: const InputDecoration(labelText: 'Título'),
                   validator: (v) => v!.isEmpty ? 'Requerido' : null,
@@ -342,41 +379,46 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
                 TextFormField(
                   controller: categoryController,
-                  decoration: const InputDecoration(
-                    labelText: 'Categoría/Área',
-                  ),
+                  decoration: const InputDecoration(labelText: 'Área'),
                   validator: (v) => v!.isEmpty ? 'Requerido' : null,
                 ),
                 TextFormField(
-                  controller: totalController,
+                  controller: yearController,
                   decoration: const InputDecoration(
-                    labelText: 'Total Ejemplares',
+                    labelText: 'Año de Publicación',
                   ),
                   keyboardType: TextInputType.number,
-                  validator: (v) => v!.isEmpty ? 'Requerido' : null,
                 ),
               ],
             ),
           ),
         ),
         actions: _buildDialogActions(
-          onConfirm: () {
+          onConfirm: () async {
             if (formKey.currentState!.validate()) {
-              setState(() {
-                final newBook = {
-                  'title': titleController.text,
-                  'author': authorController.text,
-                  'category': categoryController.text,
-                  'available': int.tryParse(totalController.text) ?? 0,
-                  'total': int.tryParse(totalController.text) ?? 0,
+              Navigator.pop(context);
+              try {
+                final data = {
+                  'codigo_libro': codigoController.text,
+                  'titulo': titleController.text,
+                  'autor': authorController.text,
+                  'area': categoryController.text,
+                  'anio_publicacion': int.tryParse(yearController.text),
+                  'estado': book?['estado'] ?? 'activo',
                 };
                 if (isEditing) {
-                  _books[index!] = newBook;
+                  await _librosService.updateLibro(book!['id_libro'], data);
                 } else {
-                  _books.add(newBook);
+                  await _librosService.createLibro(data);
                 }
-              });
-              Navigator.pop(context);
+                _loadBooks();
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
             }
           },
         ),
@@ -471,111 +513,119 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   void _showAddLoanDialog() {
     final formKey = GlobalKey<FormState>();
-    String? selectedBook;
-    String? selectedUser;
-    DateTime selectedDate = DateTime.now().add(const Duration(days: 15));
-    final dateController = TextEditingController(
-      text: selectedDate.toString().split(' ')[0],
-    );
+    Map<String, dynamic>? selectedUser;
+    List<Map<String, dynamic>> ejemplaresDisponibles = [];
+    Map<String, dynamic>? selectedEjemplar;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: _cardColor,
-        title: const Text(
-          'Nuevo Préstamo',
-          style: TextStyle(color: _textColor),
-        ),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Libro'),
-                  dropdownColor: _cardColor,
-                  items: _books.map((book) {
-                    return DropdownMenuItem<String>(
-                      value: book['title'] as String,
-                      child: SizedBox(
-                        width: 200,
-                        child: Text(
-                          book['title'] as String,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (v) => selectedBook = v,
-                  validator: (v) => v == null ? 'Seleccione un libro' : null,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Usuario'),
-                  dropdownColor: _cardColor,
-                  items: _users.map((user) {
-                    return DropdownMenuItem<String>(
-                      value: user['name'] as String,
-                      child: Text(user['name'] as String),
-                    );
-                  }).toList(),
-                  onChanged: (v) => selectedUser = v,
-                  validator: (v) => v == null ? 'Seleccione un usuario' : null,
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: dateController,
-                  decoration: const InputDecoration(
-                    labelText: 'Fecha Devolución Estimada',
-                    suffixIcon: Icon(Icons.calendar_today),
-                  ),
-                  readOnly: true,
-                  onTap: () async {
-                    final picked = await showDatePicker(
-                      context: context,
-                      initialDate: selectedDate,
-                      firstDate: DateTime.now(),
-                      lastDate: DateTime.now().add(const Duration(days: 365)),
-                      builder: (context, child) {
-                        return Theme(
-                          data: Theme.of(context).copyWith(
-                            colorScheme: const ColorScheme.light(
-                              primary: _primaryColor,
-                              onPrimary: Colors.white,
-                              onSurface: _textColor,
-                            ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: _cardColor,
+          title: const Text(
+            'Nuevo Préstamo',
+            style: TextStyle(color: _textColor),
+          ),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(labelText: 'Libro'),
+                    dropdownColor: _cardColor,
+                    items: _books.where((b) => _toInt(b['available']) > 0).map((
+                      book,
+                    ) {
+                      return DropdownMenuItem<int>(
+                        value: _toInt(book['id_libro']),
+                        child: SizedBox(
+                          width: 200,
+                          child: Text(
+                            book['title'] as String,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          child: child!,
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (id) async {
+                      // Cargar ejemplares disponibles del libro
+                      try {
+                        final ejs = await _librosService.getEjemplares(id!);
+                        setDialogState(() {
+                          ejemplaresDisponibles = ejs
+                              .where((e) => e['disponibilidad'] == 'disponible')
+                              .toList();
+                          selectedEjemplar = null;
+                        });
+                      } catch (_) {}
+                    },
+                    validator: (v) => v == null ? 'Seleccione un libro' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  if (ejemplaresDisponibles.isNotEmpty)
+                    DropdownButtonFormField<int>(
+                      decoration: const InputDecoration(labelText: 'Ejemplar'),
+                      dropdownColor: _cardColor,
+                      items: ejemplaresDisponibles.map((ej) {
+                        return DropdownMenuItem<int>(
+                          value: _toInt(ej['id_ejemplar']),
+                          child: Text(ej['codigo_ejemplar'] as String),
+                        );
+                      }).toList(),
+                      onChanged: (id) {
+                        selectedEjemplar = ejemplaresDisponibles.firstWhere(
+                          (e) => e['id_ejemplar'] == id,
                         );
                       },
-                    );
-                    if (picked != null) {
-                      selectedDate = picked;
-                      dateController.text = picked.toString().split(' ')[0];
-                    }
-                  },
-                ),
-              ],
+                      validator: (v) =>
+                          v == null ? 'Seleccione un ejemplar' : null,
+                    ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    decoration: const InputDecoration(labelText: 'Usuario'),
+                    dropdownColor: _cardColor,
+                    items: _users.map((user) {
+                      return DropdownMenuItem<String>(
+                        value: user['name'] as String,
+                        child: Text(user['name'] as String),
+                      );
+                    }).toList(),
+                    onChanged: (v) {
+                      selectedUser = _users.firstWhere((u) => u['name'] == v);
+                    },
+                    validator: (v) =>
+                        v == null ? 'Seleccione un usuario' : null,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        actions: _buildDialogActions(
-          confirmLabel: 'Prestar',
-          onConfirm: () {
-            if (formKey.currentState!.validate()) {
-              setState(() {
-                _loans.insert(0, {
-                  'book': selectedBook,
-                  'user': selectedUser,
-                  'loanDate': DateTime.now().toString().split(' ')[0],
-                  'returnDate': dateController.text,
-                  'status': 'Prestado',
-                });
-              });
-              Navigator.pop(context);
-            }
-          },
+          actions: _buildDialogActions(
+            confirmLabel: 'Prestar',
+            onConfirm: () async {
+              if (formKey.currentState!.validate() &&
+                  selectedEjemplar != null) {
+                Navigator.pop(context);
+                try {
+                  await _librosService.createPrestamo({
+                    'id_usuario': selectedUser?['id_usuario'] ?? 1,
+                    'id_ejemplar': selectedEjemplar!['id_ejemplar'],
+                    'id_solicitud': null,
+                  });
+                  _loadLoans();
+                  _loadBooks();
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                }
+              }
+            },
+          ),
         ),
       ),
     );
@@ -1016,6 +1066,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildLoansView() {
+    if (_isLoadingLoans) {
+      return const Center(
+        child: CircularProgressIndicator(color: _primaryColor),
+      );
+    }
+
     // Separar préstamos activos de devueltos
     final activos = _loans.where((l) => l['status'] == 'Prestado').toList();
     final devueltos = _loans.where((l) => l['status'] == 'Devuelto').toList();
@@ -1032,7 +1088,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             icon: Icons.schedule,
             label: 'Pendientes de devolución',
             count: activos.length,
-            color: Colors.orange,
+            color: _primaryColor,
           ),
           const SizedBox(height: 8),
           if (activos.isEmpty)
@@ -1050,7 +1106,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             icon: Icons.check_circle,
             label: 'Devueltos',
             count: devueltos.length,
-            color: Colors.green,
+            color: _primaryColor,
           ),
           const SizedBox(height: 8),
           if (devueltos.isEmpty)
@@ -1123,7 +1179,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildActiveLoanCard(Map<String, dynamic> loan) {
-    final returnDate = DateTime.parse(loan['returnDate']);
+    final returnDateStr = loan['returnDate'] as String? ?? '';
+    final hasReturnDate = returnDateStr.isNotEmpty;
+    final returnDate = hasReturnDate
+        ? DateTime.tryParse(returnDateStr) ??
+              DateTime.now().add(const Duration(days: 15))
+        : DateTime.now().add(const Duration(days: 15));
     final now = DateTime.now();
     final isOverdue = returnDate.isBefore(now);
     final daysLeft = returnDate.difference(now).inDays;
@@ -1132,10 +1193,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       decoration: BoxDecoration(
         color: _itemColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isOverdue ? Colors.red.withValues(alpha: 0.4) : _accentColor,
-          width: isOverdue ? 1.5 : 1,
-        ),
+        border: Border.all(color: _accentColor, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1144,20 +1202,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: isOverdue
-                  ? Colors.red.withValues(alpha: 0.08)
-                  : _primaryColor.withValues(alpha: 0.06),
+              color: _primaryColor.withValues(alpha: 0.06),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(11),
               ),
             ),
             child: Row(
               children: [
-                Icon(
-                  isOverdue ? Icons.warning_amber_rounded : Icons.menu_book,
-                  size: 16,
-                  color: isOverdue ? Colors.red : _primaryColor,
-                ),
+                Icon(Icons.menu_book, size: 16, color: _primaryColor),
                 const SizedBox(width: 6),
                 Text(
                   isOverdue
@@ -1165,10 +1217,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       : daysLeft == 0
                       ? 'Vence hoy'
                       : 'Vence en $daysLeft día${daysLeft == 1 ? '' : 's'}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: isOverdue ? Colors.red : _primaryColor,
+                    color: _primaryColor,
                   ),
                 ),
                 const Spacer(),
@@ -1178,17 +1230,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: isOverdue
-                        ? Colors.red.withValues(alpha: 0.1)
-                        : _primaryColor.withValues(alpha: 0.12),
+                    color: _primaryColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(6),
                   ),
-                  child: Text(
+                  child: const Text(
                     'ACTIVO',
                     style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: isOverdue ? Colors.red : _primaryColor,
+                      color: _primaryColor,
                     ),
                   ),
                 ),
@@ -1260,12 +1310,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
       decoration: BoxDecoration(
         color: _itemColor,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+        border: Border.all(color: _accentColor),
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, color: Colors.green, size: 28),
+          const Icon(Icons.check_circle, color: _primaryColor, size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -1341,7 +1391,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           _selectedCategoryFilter == null ||
           book['category'] == _selectedCategoryFilter;
       final matchesAvailability =
-          !_showAvailableOnly || (book['available'] as int) > 0;
+          !_showAvailableOnly || _toInt(book['available']) > 0;
 
       return matchesQuery && matchesCategory && matchesAvailability;
     }).toList();
@@ -1393,113 +1443,153 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
           ),
           Expanded(
-            child: ListView.separated(
-              itemCount: filteredBooks.length,
-              separatorBuilder: (c, i) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final book = filteredBooks[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BookDetailScreen(book: book),
+            child: _isLoadingBooks
+                ? const Center(
+                    child: CircularProgressIndicator(color: _primaryColor),
+                  )
+                : filteredBooks.isEmpty
+                ? Center(
+                    child: Text(
+                      'No se encontraron libros',
+                      style: TextStyle(
+                        color: _textColor.withValues(alpha: 0.5),
                       ),
-                    );
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: _itemColor,
-                      borderRadius: BorderRadius.circular(8),
                     ),
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                book['title'] as String,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: _textColor,
+                  )
+                : RefreshIndicator(
+                    color: _primaryColor,
+                    onRefresh: _loadBooks,
+                    child: ListView.separated(
+                      itemCount: filteredBooks.length,
+                      separatorBuilder: (c, i) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final book = filteredBooks[index];
+                        return GestureDetector(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BookDetailScreen(
+                                  book: book,
+                                  librosService: _librosService,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                book['author'] as String,
-                                style: TextStyle(
-                                  color: _textColor.withValues(alpha: 0.6),
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8,
-                                      vertical: 2,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: _textColor.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      book['category'] as String,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
-                                        color: _textColor.withValues(
-                                          alpha: 0.8,
+                            );
+                            _loadBooks();
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _itemColor,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        book['title'] as String,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          color: _textColor,
                                         ),
                                       ),
-                                    ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        book['author'] as String,
+                                        style: TextStyle(
+                                          color: _textColor.withValues(
+                                            alpha: 0.6,
+                                          ),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: _textColor.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              book['category'] as String,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                                color: _textColor.withValues(
+                                                  alpha: 0.8,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Text(
+                                            '${book['available']}/${book['total']} disponibles',
+                                            style: TextStyle(
+                                              color: _textColor.withValues(
+                                                alpha: 0.6,
+                                              ),
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    '${book['available']}/${book['total']} disponibles',
-                                    style: TextStyle(
-                                      color: _textColor.withValues(alpha: 0.6),
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        _buildActionButtons(
-                          onDelete: () {
-                            final originalIndex = _books.indexOf(book);
-                            if (originalIndex != -1) {
-                              _showDeleteConfirmation(
-                                message: '¿Eliminar libro?',
-                                onConfirm: () => setState(
-                                  () => _books.removeAt(originalIndex),
                                 ),
-                              );
-                            }
-                          },
-                          onEdit: () {
-                            final originalIndex = _books.indexOf(book);
-                            if (originalIndex != -1) {
-                              _showAddBookDialog(
-                                book: book,
-                                index: originalIndex,
-                              );
-                            }
-                          },
-                        ),
-                      ],
+                                _buildActionButtons(
+                                  onDelete: () {
+                                    _showDeleteConfirmation(
+                                      message:
+                                          '¿Eliminar libro "${book['title']}"?',
+                                      onConfirm: () async {
+                                        try {
+                                          await _librosService.deleteLibro(
+                                            book['id_libro'],
+                                          );
+                                          _loadBooks();
+                                        } catch (e) {
+                                          if (mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Error: $e'),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    );
+                                  },
+                                  onEdit: () {
+                                    final originalIndex = _books.indexOf(book);
+                                    _showAddBookDialog(
+                                      book: book,
+                                      index: originalIndex,
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
@@ -1511,147 +1601,39 @@ class _AdminDashboardState extends State<AdminDashboard> {
   void _showReturnLoanDialog(Map<String, dynamic> loan) {
     String condition = 'bueno';
     final observacionesController = TextEditingController();
-    final returnDate = DateTime.parse(loan['returnDate']);
-    final isOverdue = returnDate.isBefore(DateTime.now());
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: _cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          titlePadding: EdgeInsets.zero,
-          title: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: _primaryColor.withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: _primaryColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.assignment_return,
-                    color: _primaryColor,
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Registrar Devolución',
-                        style: TextStyle(
-                          color: _textColor,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Completa los datos para finalizar el préstamo',
-                        style: TextStyle(color: _primaryColor, fontSize: 12),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          title: const Text(
+            'Registrar Devolución',
+            style: TextStyle(color: _textColor, fontWeight: FontWeight.bold),
           ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Resumen del préstamo ──
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: _itemColor,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _accentColor),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loan['book'] as String,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                          color: _textColor,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      _buildDialogInfoRow(Icons.person_outline, loan['user']),
-                      const SizedBox(height: 3),
-                      _buildDialogInfoRow(
-                        Icons.qr_code,
-                        'Ejemplar: ${loan['ejemplar'] ?? "-"}',
-                      ),
-                      const SizedBox(height: 3),
-                      _buildDialogInfoRow(
-                        Icons.calendar_today,
-                        'Prestado: ${loan['loanDate']}',
-                      ),
-                      const SizedBox(height: 3),
-                      _buildDialogInfoRow(
-                        Icons.event,
-                        'Vencía: ${loan['returnDate']}',
-                        color: isOverdue ? Colors.red : null,
-                      ),
-                    ],
+                Text(
+                  '${loan['book']}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: _textColor,
                   ),
                 ),
-                if (isOverdue) ...[
-                  const SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.warning_amber_rounded,
-                          size: 14,
-                          color: Colors.red,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Este préstamo está vencido',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 4),
+                Text(
+                  'Usuario: ${loan['user']}',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: _textColor.withValues(alpha: 0.6),
                   ),
-                ],
-                const SizedBox(height: 20),
-
-                // ── Paso 1: Condición ──
+                ),
+                const SizedBox(height: 16),
                 const Text(
-                  '¿En qué condición se devuelve el libro?',
+                  'Condición del libro',
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -1659,47 +1641,33 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _buildConditionChip(
-                      'excelente',
-                      'Excelente',
-                      Colors.green,
-                      condition,
-                      (v) {
-                        setDialogState(() => condition = v);
-                      },
+                DropdownButtonFormField<String>(
+                  value: condition,
+                  dropdownColor: _cardColor,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: _itemColor,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: _accentColor),
                     ),
-                    _buildConditionChip(
-                      'bueno',
-                      'Bueno',
-                      _primaryColor,
-                      condition,
-                      (v) {
-                        setDialogState(() => condition = v);
-                      },
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
                     ),
-                    _buildConditionChip(
-                      'regular',
-                      'Regular',
-                      Colors.orange,
-                      condition,
-                      (v) {
-                        setDialogState(() => condition = v);
-                      },
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'excelente',
+                      child: Text('Excelente'),
                     ),
-                    _buildConditionChip('malo', 'Malo', Colors.red, condition, (
-                      v,
-                    ) {
-                      setDialogState(() => condition = v);
-                    }),
+                    DropdownMenuItem(value: 'bueno', child: Text('Bueno')),
+                    DropdownMenuItem(value: 'regular', child: Text('Regular')),
+                    DropdownMenuItem(value: 'malo', child: Text('Malo')),
                   ],
+                  onChanged: (v) => setDialogState(() => condition = v!),
                 ),
-                const SizedBox(height: 20),
-
-                // ── Paso 2: Observaciones ──
+                const SizedBox(height: 16),
                 const Text(
                   'Observaciones (opcional)',
                   style: TextStyle(
@@ -1711,10 +1679,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: observacionesController,
-                  maxLines: 3,
+                  maxLines: 2,
                   style: const TextStyle(color: _textColor, fontSize: 13),
                   decoration: InputDecoration(
-                    hintText: 'Ej: Lomo desgastado, páginas marcadas…',
+                    hintText: 'Ej: Lomo desgastado...',
                     hintStyle: TextStyle(
                       color: _textColor.withValues(alpha: 0.35),
                       fontSize: 13,
@@ -1725,126 +1693,30 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide(color: _accentColor),
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: _accentColor),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: _primaryColor),
-                    ),
                   ),
                 ),
               ],
             ),
           ),
-          actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-          actions: [
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(ctx),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: _textColor,
-                      side: BorderSide(
-                        color: _textColor.withValues(alpha: 0.3),
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                    child: const Text('Cancelar'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      setState(() {
-                        loan['status'] = 'Devuelto';
-                        loan['condicionDevolucion'] = condition;
-                        loan['observaciones'] = observacionesController.text;
-                        loan['fechaDevolucion'] = DateTime.now()
-                            .toIso8601String()
-                            .split('T')
-                            .first;
-                      });
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(this.context).showSnackBar(
-                        SnackBar(
-                          content: Row(
-                            children: [
-                              const Icon(
-                                Icons.check_circle,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  'Devolución de "${loan['book']}" registrada',
-                                ),
-                              ),
-                            ],
-                          ),
-                          backgroundColor: Colors.green,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.check, size: 18),
-                    label: const Text('Confirmar Devolución'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConditionChip(
-    String value,
-    String label,
-    Color color,
-    String selected,
-    ValueChanged<String> onSelected,
-  ) {
-    final isSelected = selected == value;
-    return GestureDetector(
-      onTap: () => onSelected(value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.15) : _itemColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? color : _accentColor,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? color : _textColor.withValues(alpha: 0.7),
+          actions: _buildDialogActions(
+            confirmLabel: 'Confirmar Devolución',
+            onConfirm: () async {
+              Navigator.pop(ctx);
+              try {
+                await _librosService.devolverPrestamo(
+                  loan['id_prestamo'],
+                  observaciones: observacionesController.text,
+                );
+                _loadLoans();
+                _loadBooks();
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al devolver: $e')),
+                  );
+                }
+              }
+            },
           ),
         ),
       ),
@@ -1873,6 +1745,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
   // ── Bandeja de Solicitudes ──
 
   Widget _buildSolicitudesView() {
+    if (_isLoadingSolicitudes) {
+      return const Center(
+        child: CircularProgressIndicator(color: _primaryColor),
+      );
+    }
+
     final pendientes = _solicitudes
         .where((s) => s['estado'] == 'pendiente')
         .toList();
@@ -1963,14 +1841,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final isPendiente = solicitud['estado'] == 'pendiente';
     final isAprobada = solicitud['estado'] == 'aprobada';
 
-    final Color statusColor;
-    if (isPendiente) {
-      statusColor = Colors.orange;
-    } else if (isAprobada) {
-      statusColor = Colors.green;
-    } else {
-      statusColor = Colors.red;
-    }
+    final Color statusColor = _primaryColor;
 
     return Container(
       decoration: BoxDecoration(
@@ -2003,7 +1874,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Ejemplar: ${solicitud['ejemplar']} • ${solicitud['fecha']}',
+                  solicitud['fecha'] ?? '',
                   style: TextStyle(
                     fontSize: 12,
                     color: _textColor.withValues(alpha: 0.5),
@@ -2031,23 +1902,188 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ],
             ),
           ),
+          ElevatedButton.icon(
+            onPressed: () => _showSolicitudDetailsDialog(solicitud),
+            icon: const Icon(Icons.visibility, size: 16),
+            label: const Text('Detalles'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primaryColor,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              textStyle: const TextStyle(fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSolicitudDetailsDialog(Map<String, dynamic> solicitud) {
+    final isPendiente = solicitud['estado'] == 'pendiente';
+    final isAprobada = solicitud['estado'] == 'aprobada';
+
+    final Color statusColor = _primaryColor;
+    final String statusText;
+    if (isPendiente) {
+      statusText = 'PENDIENTE';
+    } else if (isAprobada) {
+      statusText = 'APROBADA';
+    } else {
+      statusText = 'RECHAZADA';
+    }
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: _cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        titlePadding: EdgeInsets.zero,
+        title: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: _primaryColor.withValues(alpha: 0.1),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: _primaryColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.description,
+                  color: _primaryColor,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Detalle de Solicitud',
+                  style: TextStyle(
+                    color: _textColor,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  statusText,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: statusColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _itemColor,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: _accentColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildDialogInfoRow(Icons.book, solicitud['libro']),
+                  const SizedBox(height: 6),
+                  _buildDialogInfoRow(
+                    Icons.person_outline,
+                    solicitud['usuario'],
+                  ),
+                  const SizedBox(height: 6),
+                  _buildDialogInfoRow(
+                    Icons.calendar_today,
+                    'Fecha: ${solicitud['fecha']}',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        actions: [
           if (isPendiente)
             Row(
-              mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton(
-                  onPressed: () => _aprobarSolicitud(solicitud),
-                  icon: const Icon(Icons.check_circle, color: Colors.green),
-                  tooltip: 'Aprobar',
-                  visualDensity: VisualDensity.compact,
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _rechazarSolicitud(solicitud);
+                    },
+                    icon: const Icon(Icons.cancel, size: 18),
+                    label: const Text('Rechazar'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: _textColor,
+                      side: BorderSide(
+                        color: _textColor.withValues(alpha: 0.3),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
-                IconButton(
-                  onPressed: () => _rechazarSolicitud(solicitud),
-                  icon: const Icon(Icons.cancel, color: Colors.red),
-                  tooltip: 'Rechazar',
-                  visualDensity: VisualDensity.compact,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _aprobarSolicitud(solicitud);
+                    },
+                    icon: const Icon(Icons.check_circle, size: 18),
+                    label: const Text('Aprobar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
               ],
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: _textColor,
+                  side: BorderSide(color: _textColor.withValues(alpha: 0.3)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: const Text('Cerrar'),
+              ),
             ),
         ],
       ),
@@ -2082,28 +2118,28 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         actions: _buildDialogActions(
           confirmLabel: 'Aprobar',
-          onConfirm: () {
-            setState(() {
-              solicitud['estado'] = 'aprobada';
-              // Crear préstamo automáticamente
-              _loans.insert(0, {
-                'book': solicitud['libro'],
-                'user': solicitud['usuario'],
-                'loanDate': DateTime.now().toString().split(' ')[0],
-                'returnDate': DateTime.now()
-                    .add(const Duration(days: 15))
-                    .toString()
-                    .split(' ')[0],
-                'status': 'Prestado',
-              });
-            });
+          onConfirm: () async {
             Navigator.pop(ctx);
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Solicitud aprobada — Préstamo creado'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            try {
+              await _librosService.updateEstadoSolicitud(
+                solicitud['id_solicitud'],
+                'aprobada',
+              );
+              _loadSolicitudes();
+              _loadLoans();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Solicitud aprobada'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            } catch (e) {
+              if (mounted) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Error: $e')));
+              }
+            }
           },
         ),
       ),
@@ -2128,17 +2164,27 @@ class _AdminDashboardState extends State<AdminDashboard> {
             child: const Text('Cancelar', style: TextStyle(color: _textColor)),
           ),
           TextButton(
-            onPressed: () {
-              setState(() {
-                solicitud['estado'] = 'rechazada';
-              });
+            onPressed: () async {
               Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Solicitud rechazada'),
-                  backgroundColor: Colors.orange,
-                ),
-              );
+              try {
+                await _librosService.updateEstadoSolicitud(
+                  solicitud['id_solicitud'],
+                  'rechazada',
+                );
+                _loadSolicitudes();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Solicitud rechazada'),
+                    backgroundColor: Colors.orange,
+                  ),
+                );
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
             },
             child: const Text('Rechazar', style: TextStyle(color: Colors.red)),
           ),

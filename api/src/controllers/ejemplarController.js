@@ -84,13 +84,31 @@ export const createEjemplar = async (req, res) => {
   const { id_libro, codigo_ejemplar, condicion_fisica, disponibilidad } = req.body;
 
   try {
+    // Si no se envía código, generar uno automático basado en el máximo global
+    let codigoFinal = codigo_ejemplar;
+    if (!codigoFinal) {
+      const [rows] = await db.query(
+        `SELECT codigo_ejemplar FROM ejemplares_libro 
+         WHERE codigo_ejemplar LIKE 'EJ-%' 
+         ORDER BY CAST(SUBSTRING(codigo_ejemplar, 4) AS UNSIGNED) DESC 
+         LIMIT 1`
+      );
+      let nextNum = 1;
+      if (rows.length > 0) {
+        const lastCode = rows[0].codigo_ejemplar;
+        const num = parseInt(lastCode.replace('EJ-', ''), 10);
+        if (!isNaN(num)) nextNum = num + 1;
+      }
+      codigoFinal = `EJ-${String(nextNum).padStart(3, '0')}`;
+    }
+
     const [result] = await db.query(
       `INSERT INTO ejemplares_libro 
        (id_libro, codigo_ejemplar, condicion_fisica, disponibilidad)
        VALUES (?, ?, ?, ?)`,
       [
         id_libro,
-        codigo_ejemplar,
+        codigoFinal,
         condicion_fisica || "bueno",
         disponibilidad || "disponible"
       ]
@@ -98,7 +116,8 @@ export const createEjemplar = async (req, res) => {
 
     res.status(201).json({
       message: "Ejemplar creado",
-      id_ejemplar: result.insertId
+      id_ejemplar: result.insertId,
+      codigo_ejemplar: codigoFinal
     });
 
   } catch (error) {

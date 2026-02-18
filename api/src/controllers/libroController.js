@@ -60,10 +60,11 @@ export const createLibro = async (req, res) => {
   const { codigo_libro, titulo, autor, area, anio_publicacion, estado } = req.body;
 
   try {
+    const anio = anio_publicacion ? parseInt(anio_publicacion, 10) || null : null;
     const [result] = await db.query(
       `INSERT INTO libros (codigo_libro, titulo, autor, area, anio_publicacion, estado)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [codigo_libro, titulo, autor, area, anio_publicacion, estado || "activo"]
+      [codigo_libro, titulo, autor, area, anio, estado || "activo"]
     );
 
     res.status(201).json({
@@ -84,11 +85,14 @@ export const updateLibro = async (req, res) => {
   const { codigo_libro, titulo, autor, area, anio_publicacion, estado } = req.body;
 
   try {
+    const anio = anio_publicacion ? parseInt(anio_publicacion, 10) || null : null;
+    const est = estado || "activo";
+    console.log("UPDATE libro:", { codigo_libro, titulo, autor, area, anio, est, id: req.params.id });
     const [result] = await db.query(
       `UPDATE libros
        SET codigo_libro=?, titulo=?, autor=?, area=?, anio_publicacion=?, estado=?
        WHERE id_libro=?`,
-      [codigo_libro, titulo, autor, area, anio_publicacion, estado, req.params.id]
+      [codigo_libro || null, titulo || null, autor || null, area || null, anio, est, req.params.id]
     );
 
     if (result.affectedRows === 0)

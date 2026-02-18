@@ -3,7 +3,7 @@
 class Ejemplar {
   final int? id;
   final int libroId; // ID del libro al que pertenece
-  final String codigo; // Código único del ejemplar (ej: CAS-001)
+  final String codigo; // Código único del ejemplar (ej: EJ-001)
   String condicion; // excelente | bueno | regular | malo
   String disponibilidad; // disponible | prestado
 

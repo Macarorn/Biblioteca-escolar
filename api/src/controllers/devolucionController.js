@@ -73,10 +73,10 @@ export const devolverPrestamo = async (req, res) => {
       VALUES (?, CURRENT_DATE, ?)
     `, [idPrestamo, observaciones || null]);
 
-    // 3️⃣ Actualizar estado del préstamo
+    // 3️⃣ Actualizar estado del préstamo y fecha de devolución real
     await db.query(`
       UPDATE prestamos
-      SET estado = 'devuelto'
+      SET estado = 'devuelto', fecha_devolucion = CURRENT_DATE
       WHERE id_prestamo = ?
     `, [idPrestamo]);
 
