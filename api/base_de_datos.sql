@@ -37,7 +37,7 @@ CREATE TABLE ejemplares_libro (
   id_ejemplar INT AUTO_INCREMENT PRIMARY KEY,
   id_libro INT NOT NULL,
   codigo_ejemplar VARCHAR(50) UNIQUE,
-  condicion_fisica ENUM('bueno','regular') DEFAULT 'bueno',
+  condicion_fisica ENUM('excelente','bueno','regular','malo') DEFAULT 'bueno',
   disponibilidad ENUM('disponible','prestado','mantenimiento') 
     DEFAULT 'disponible',
   FOREIGN KEY (id_libro) REFERENCES libros(id_libro)
@@ -108,15 +108,15 @@ INSERT INTO libros (codigo_libro, titulo, autor, area, anio_publicacion) VALUES
 
 -- Ejemplares_libro
 INSERT INTO ejemplares_libro (id_libro, codigo_ejemplar, condicion_fisica, disponibilidad) VALUES
-(1, 'EJ-001', 'bueno', 'disponible'),
+(1, 'EJ-001', 'excelente', 'disponible'),
 (1, 'EJ-002', 'regular', 'prestado'),
-(2, 'EJ-003', 'bueno', 'disponible'),
+(2, 'EJ-003', 'excelente', 'disponible'),
 (2, 'EJ-004', 'bueno', 'disponible'),
 (3, 'EJ-005', 'regular', 'disponible'),
 (3, 'EJ-006', 'bueno', 'prestado'),
-(4, 'EJ-007', 'bueno', 'disponible'),
+(4, 'EJ-007', 'malo', 'disponible'),
 (4, 'EJ-008', 'bueno', 'disponible'),
-(5, 'EJ-009', 'bueno', 'disponible'),
+(5, 'EJ-009', 'malo', 'disponible'),
 (5, 'EJ-010', 'regular', 'mantenimiento');
 
 

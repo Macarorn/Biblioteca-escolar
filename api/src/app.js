@@ -37,7 +37,7 @@ app.use("/devoluciones", devolucionRoutes);
 app.post("/prestamos/:id/devolver", devolverPrestamo);
 
 app.get("/", (req, res) => {
-  res.json({ message: "API Biblioteca Escolar activa 📚" });
+  res.json({ message: "API Biblioteca Escolar activa " });
 });
 
 //Para probar que la conexión es exitosa probar http://localhost:3000/db-check

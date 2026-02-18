@@ -4,6 +4,7 @@ import 'providers/session_provider.dart';
 import 'screens/login_screen.dart';
 import 'services/api_client.dart';
 import 'services/auth_service.dart';
+import 'services/libros_service.dart';
 
 void main() {
   runApp(const MainApp());
@@ -20,6 +21,9 @@ class MainApp extends StatelessWidget {
         Provider(create: (_) => ApiClient()),
         ProxyProvider<ApiClient, AuthService>(
           update: (_, api, __) => AuthService(api),
+        ),
+        ProxyProvider<ApiClient, LibrosService>(
+          update: (_, api, __) => LibrosService(api),
         ),
       ],
       child: MaterialApp(

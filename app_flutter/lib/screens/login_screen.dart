@@ -37,42 +37,50 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     final authService = Provider.of<AuthService>(context, listen: false);
     final session = Provider.of<SessionProvider>(context, listen: false);
-    final result = await authService.login(documento, contrasena);
-    if (result['success'] == true) {
-      session.login(
-        userName: result['nombre'],
-        userRole: result['rol'],
-        token: result['token'],
-      );
-      if (!mounted) return;
-      // La navegacion interna que depende del rol
-      if (result['rol'] == 'estudiante') {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => StudentDashboard(userName: result['nombre']),
-          ),
+    try {
+      final result = await authService.login(documento, contrasena);
+      if (result['success'] == true) {
+        session.login(
+          userName: result['nombre'],
+          userRole: result['rol'],
+          token: result['token'],
         );
-      } else if (result['rol'] == 'profesor') {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => TeacherDashboard(userName: result['nombre']),
-          ),
-        );
-      } else if (result['rol'] == 'administrador' ||
-          result['rol'] == 'bibliotecario') {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => AdminDashboard(
-              userName: result['nombre'],
-              userRole: result['rol'],
+        if (!mounted) return;
+        // La navegacion interna que depende del rol
+        if (result['rol'] == 'estudiante') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) =>
+                  StudentDashboard(userName: result['nombre']),
             ),
-          ),
-        );
+          );
+        } else if (result['rol'] == 'profesor') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) =>
+                  TeacherDashboard(userName: result['nombre']),
+            ),
+          );
+        } else if (result['rol'] == 'administrador' ||
+            result['rol'] == 'bibliotecario') {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (context) => AdminDashboard(
+                userName: result['nombre'],
+                userRole: result['rol'],
+              ),
+            ),
+          );
+        } else {
+          setState(() => _error = 'Rol no soportado');
+        }
       } else {
-        setState(() => _error = 'Rol no soportado');
+        setState(() => _error = result['error'] ?? 'Error desconocido');
       }
-    } else {
-      setState(() => _error = result['error'] ?? 'Error desconocido');
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = 'No se pudo conectar al servidor: $e');
+      }
     }
   }
 

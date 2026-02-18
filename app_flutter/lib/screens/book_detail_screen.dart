@@ -1,13 +1,16 @@
 ﻿import 'package:flutter/material.dart';
+import '../services/libros_service.dart';
 
 class BookDetailScreen extends StatefulWidget {
   final Map<String, dynamic> book;
   final String userRole;
+  final LibrosService? librosService;
 
   const BookDetailScreen({
     super.key,
     required this.book,
     this.userRole = 'administrador',
+    this.librosService,
   });
 
   @override
@@ -27,14 +30,82 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   bool get _isGestor =>
       widget.userRole == 'administrador' || widget.userRole == 'bibliotecario';
 
-  // Datos simulados para los ejemplares
-  final List<Map<String, dynamic>> _copies = [
-    {'code': 'CAS-001', 'condition': 'excelente', 'status': 'Disponible'},
-    {'code': 'CAS-002', 'condition': 'bueno', 'status': 'Disponible'},
-    {'code': 'CAS-003', 'condition': 'bueno', 'status': 'Disponible'},
-    {'code': 'CAS-004', 'condition': 'regular', 'status': 'Prestado'},
-    {'code': 'CAS-005', 'condition': 'excelente', 'status': 'Prestado'},
-  ];
+  // Datos cargados desde API
+  List<Map<String, dynamic>> _copies = [];
+  bool _isLoading = true;
+  int _available = 0;
+  int _total = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _available = widget.book['available'] ?? 0;
+    _total = widget.book['total'] ?? 0;
+    _loadCopies();
+  }
+
+  Future<void> _loadCopies() async {
+    final service = widget.librosService;
+    if (service == null) {
+      setState(() => _isLoading = false);
+      return;
+    }
+    try {
+      final libroId = widget.book['id_libro'];
+      if (libroId == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+      final ejemplares = await service.getEjemplares(libroId);
+      final disp = await service.getDisponibilidad(libroId);
+      if (mounted) {
+        setState(() {
+          _copies = ejemplares
+              .map(
+                (e) => <String, dynamic>{
+                  ...e,
+                  'code': e['codigo_ejemplar'] ?? '',
+                  'condition': e['condicion_fisica'] ?? '',
+                  'status': _mapDisponibilidad(e['disponibilidad']),
+                },
+              )
+              .toList();
+          _available = disp['disponibles'] ?? 0;
+          _total = disp['total'] ?? 0;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  String _mapDisponibilidad(String? disp) {
+    switch (disp) {
+      case 'disponible':
+        return 'Disponible';
+      case 'prestado':
+        return 'Prestado';
+      case 'mantenimiento':
+        return 'En Mantenimiento';
+      default:
+        return disp ?? '';
+    }
+  }
+
+  String _reverseMapDisponibilidad(String status) {
+    switch (status) {
+      case 'Disponible':
+        return 'disponible';
+      case 'Prestado':
+        return 'prestado';
+      case 'Mantenimiento':
+      case 'En Mantenimiento':
+        return 'mantenimiento';
+      default:
+        return 'disponible';
+    }
+  }
 
   // ── Helpers para evitar repetición ──
 
@@ -146,7 +217,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Ejemplares (${widget.book['available']} de ${widget.book['total']} disponibles)',
+                  'Ejemplares ($_available de $_total disponibles)',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -164,7 +235,12 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            ..._copies.map((copy) => _buildCopyItem(copy)),
+            if (_isLoading)
+              const Center(
+                child: CircularProgressIndicator(color: _primaryColor),
+              )
+            else
+              ..._copies.map((copy) => _buildCopyItem(copy)),
             if (!_isGestor && (widget.book['available'] as int) > 0) ...[
               const SizedBox(height: 24),
               SizedBox(
@@ -195,10 +271,10 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
 
   Widget _buildCopyItem(Map<String, dynamic> copy) {
     final isAvailable = copy['status'] == 'Disponible';
-    final isNotReturned = copy['status'] == 'No Entregado';
+    final isMaintenance = copy['status'] == 'En Mantenimiento';
     final statusColor = isAvailable
         ? Colors.green
-        : (isNotReturned ? Colors.red : Colors.orange);
+        : (isMaintenance ? Colors.orange : Colors.orange);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -258,17 +334,27 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                     color: _textColor.withValues(alpha: 0.5),
                   ),
                   color: _cardColor,
-                  onSelected: (value) {
+                  onSelected: (value) async {
                     if (value == 'edit') {
                       _showEditCopyDialog(copy);
                     } else if (value == 'delete') {
-                      setState(() {
-                        _copies.remove(copy);
-                        if (copy['status'] == 'Disponible') {
-                          widget.book['available']--;
+                      final service = widget.librosService;
+                      if (service != null && copy['id_ejemplar'] != null) {
+                        try {
+                          await service.deleteEjemplar(copy['id_ejemplar']);
+                          _loadCopies();
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Error: $e')),
+                            );
+                          }
                         }
-                        widget.book['total']--;
-                      });
+                      } else {
+                        setState(() {
+                          _copies.remove(copy);
+                        });
+                      }
                     }
                   },
                   itemBuilder: (context) => const [
@@ -355,15 +441,23 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
             child: const Text('Cancelar', style: TextStyle(color: _textColor)),
           ),
           TextButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(ctx);
-              Navigator.pop(context); // Volver al listado
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Libro eliminado'),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              final service = widget.librosService;
+              if (service != null && widget.book['id_libro'] != null) {
+                try {
+                  await service.deleteLibro(widget.book['id_libro']);
+                  if (mounted) Navigator.pop(context, true);
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al eliminar: $e')),
+                    );
+                  }
+                }
+              } else {
+                Navigator.pop(context);
+              }
             },
             child: const Text('Eliminar', style: TextStyle(color: Colors.red)),
           ),
@@ -405,13 +499,41 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         ),
         actions: _buildDialogActions(
           confirmLabel: 'Guardar Cambios',
-          onConfirm: () {
-            setState(() {
-              widget.book['title'] = titleController.text;
-              widget.book['author'] = authorController.text;
-              widget.book['category'] = categoryController.text;
-            });
+          onConfirm: () async {
             Navigator.pop(context);
+            final service = widget.librosService;
+            if (service != null && widget.book['id_libro'] != null) {
+              try {
+                await service.updateLibro(widget.book['id_libro'], {
+                  'codigo_libro': widget.book['codigo_libro'] ?? '',
+                  'titulo': titleController.text,
+                  'autor': authorController.text,
+                  'area': categoryController.text,
+                  'anio_publicacion': widget.book['anio_publicacion'],
+                  'estado': widget.book['estado'] ?? 'activo',
+                });
+                setState(() {
+                  widget.book['title'] = titleController.text;
+                  widget.book['author'] = authorController.text;
+                  widget.book['category'] = categoryController.text;
+                  widget.book['titulo'] = titleController.text;
+                  widget.book['autor'] = authorController.text;
+                  widget.book['area'] = categoryController.text;
+                });
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
+            } else {
+              setState(() {
+                widget.book['title'] = titleController.text;
+                widget.book['author'] = authorController.text;
+                widget.book['category'] = categoryController.text;
+              });
+            }
           },
         ),
       ),
@@ -452,7 +574,7 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
                 initialValue: status,
                 dropdownColor: _cardColor,
                 decoration: const InputDecoration(labelText: 'Estado'),
-                items: ['Disponible', 'Prestado', 'No Entregado']
+                items: ['Disponible', 'Prestado', 'En Mantenimiento']
                     .map(
                       (s) => DropdownMenuItem(
                         value: s,
@@ -470,19 +592,32 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         ),
         actions: _buildDialogActions(
           confirmLabel: 'Guardar',
-          onConfirm: () {
-            setState(() {
-              if (copy['status'] == 'Disponible' && status != 'Disponible') {
-                widget.book['available']--;
-              } else if (copy['status'] != 'Disponible' &&
-                  status == 'Disponible') {
-                widget.book['available']++;
-              }
-              copy['code'] = codeController.text;
-              copy['condition'] = condition;
-              copy['status'] = status;
-            });
+          onConfirm: () async {
             Navigator.pop(context);
+            final service = widget.librosService;
+            if (service != null && copy['id_ejemplar'] != null) {
+              try {
+                await service.updateEjemplar(copy['id_ejemplar'], {
+                  'id_libro': widget.book['id_libro'],
+                  'codigo_ejemplar': codeController.text,
+                  'condicion_fisica': condition,
+                  'disponibilidad': _reverseMapDisponibilidad(status),
+                });
+                _loadCopies();
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
+            } else {
+              setState(() {
+                copy['code'] = codeController.text;
+                copy['condition'] = condition;
+                copy['status'] = status;
+              });
+            }
           },
         ),
       ),
@@ -490,9 +625,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
   }
 
   void _showAddCopyDialog() {
-    final codeController = TextEditingController(
-      text: 'CAS-00${_copies.length + 1}',
-    );
     String condition = 'excelente';
 
     showDialog(
@@ -506,11 +638,6 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextFormField(
-              controller: codeController,
-              decoration: const InputDecoration(labelText: 'Código'),
-            ),
-            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               initialValue: condition,
               dropdownColor: _cardColor,
@@ -522,17 +649,29 @@ class _BookDetailScreenState extends State<BookDetailScreen> {
         ),
         actions: _buildDialogActions(
           confirmLabel: 'Añadir Ejemplar',
-          onConfirm: () {
-            setState(() {
-              _copies.add({
-                'code': codeController.text,
-                'condition': condition,
-                'status': 'Disponible',
-              });
-              widget.book['available']++;
-              widget.book['total']++;
-            });
+          onConfirm: () async {
             Navigator.pop(context);
+            final service = widget.librosService;
+            if (service != null && widget.book['id_libro'] != null) {
+              try {
+                await service.createEjemplar({
+                  'id_libro': widget.book['id_libro'],
+                  'condicion_fisica': condition,
+                  'disponibilidad': 'disponible',
+                });
+                _loadCopies();
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              }
+            } else {
+              setState(() {
+                _copies.add({'condition': condition, 'status': 'Disponible'});
+              });
+            }
           },
         ),
       ),
