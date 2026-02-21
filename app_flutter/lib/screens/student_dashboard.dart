@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_mock_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class StudentDashboard extends StatefulWidget {
   final String userName;
@@ -24,31 +26,91 @@ class _StudentDashboardState extends State<StudentDashboard> {
   String? _selectedAuthor;
   String? _selectedCategory;
 
-  final List<Map<String, dynamic>> _books = [
-    {'titulo': 'Cien años de soledad', 'autor': 'Gabriel García Márquez', 'area': 'Literatura'},
-    {'titulo': 'El principito', 'autor': 'Antoine de Saint-Exupéry', 'area': 'Infantil'},
-    {'titulo': 'Don Quijote de la Mancha', 'autor': 'Miguel de Cervantes', 'area': 'Clásicos'},
-    {'titulo': 'Harry Potter', 'autor': 'J.K. Rowling', 'area': 'Fantasía'},
-    {'titulo': 'Clean Code', 'autor': 'Robert C. Martin', 'area': 'Programación'},
-    {'titulo': 'Flutter en Acción', 'autor': 'Eric Windmill', 'area': 'Programación'},
-    {'titulo': 'Matemáticas Básicas', 'autor': 'Juan Pérez', 'area': 'Matemáticas'},
-    {'titulo': 'Biología Moderna', 'autor': 'Laura Gómez', 'area': 'Ciencias'},
-  ];
+  List<dynamic> _books = [];
 
-  final List<Map<String, dynamic>> _loans = [
-    {
-      'libro': 'Cien años de soledad',
-      'fecha': '2024-02-01',
-      'devolucion': '2024-02-10',
-      'estado': 'Activo'
-    },
-    {
-      'libro': 'Clean Code',
-      'fecha': '2024-01-10',
-      'devolucion': '2024-01-20',
-      'estado': 'Devuelto'
-    },
-  ];
+  List<dynamic> _loans = [];
+    
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBooks();
+    _loadSolicitudes();
+  }
+  Future<void> _loadBooks() async {
+    final url =
+        Uri.parse("http://localhost/biblioteca_api/libros.php");
+    final response = await http.get(url);    
+    if (response.statusCode == 200) {
+      if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      setState(() {
+        _books = data;
+      });
+      }
+    }
+  }
+  
+
+  Future<void> _loadSolicitudes() async {
+    final url =
+        Uri.parse("http://localhost/biblioteca_api/solicitudes.php");
+
+    final response = await http.post(
+      url,
+      body: {
+        "id_usuario": "1",
+      },
+    );
+
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      final List data = json.decode(response.body);
+      setState(() {
+        _loans = data;
+        _selectedIndex = 1;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Solicitud enviada")),
+      );
+    }
+  }
+
+  
+  Future<void> _solicitarLibro(String idLibro, String titulo) async {
+    final url =
+        Uri.parse("http://localhost/biblioteca_api/solicitar.php");
+
+    final response = await http.post(
+      url,
+      body: {
+        "id_usuario": "1",
+        "id_libro": idLibro,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _loans.add({
+          'libro': titulo,
+          'fecha': DateTime.now().toString().split(' ')[0],
+          'devolucion': 'Pendiente',
+          'estado': 'Pendiente'
+        });
+
+        _selectedIndex = 1; 
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Solicitud enviada")),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Error al solicitar")),
+      );
+    }
+  }
 
   void _logout() {
     Navigator.pushAndRemoveUntil(
@@ -58,11 +120,17 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  List<String> get authors =>
-      _books.map((b) => b['autor'] as String).toSet().toList();
+  List<String> get authors => _books
+      .map((b) => (b['autor'] ?? '').toString())
+      .where((a) => a.isNotEmpty)
+      .toSet()
+      .toList();
 
-  List<String> get categories =>
-      _books.map((b) => b['area'] as String).toSet().toList();
+  List<String> get categories => _books
+      .map((b) => (b['area'] ?? '').toString())
+      .where((c) => c.isNotEmpty)
+      .toSet()
+      .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -125,8 +193,8 @@ class _StudentDashboardState extends State<StudentDashboard> {
         PopupMenuDivider(),
         PopupMenuItem(
           value: "logout",
-          child: Text("Cerrar sesión",
-              style: TextStyle(color: Colors.red)),
+          child:
+              Text("Cerrar sesión", style: TextStyle(color: Colors.red)),
         ),
       ],
     );
@@ -134,10 +202,14 @@ class _StudentDashboardState extends State<StudentDashboard> {
 
   Widget _buildBooks() {
     final filtered = _books.where((b) {
+      final titulo = (b['titulo'] ?? '').toString().toLowerCase();
+      final autor = (b['autor'] ?? '').toString();
+      final area = (b['area'] ?? '').toString();
       final q = _searchQuery.toLowerCase();
-      return b['titulo'].toLowerCase().contains(q) &&
-          (_selectedAuthor == null || b['autor'] == _selectedAuthor) &&
-          (_selectedCategory == null || b['area'] == _selectedCategory);
+
+      return titulo.contains(q) &&
+          (_selectedAuthor == null || autor == _selectedAuthor) &&
+          (_selectedCategory == null || area == _selectedCategory);
     }).toList();
 
     return Padding(
@@ -156,7 +228,6 @@ class _StudentDashboardState extends State<StudentDashboard> {
           ),
           const SizedBox(height: 12),
 
-          // 🔹 FILTROS
           Row(
             children: [
               Expanded(
@@ -164,9 +235,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   value: _selectedAuthor,
                   hint: const Text("Escritor"),
                   items: authors
-                      .map((a) => DropdownMenuItem(value: a, child: Text(a)))
+                      .map((a) =>
+                          DropdownMenuItem(value: a, child: Text(a)))
                       .toList(),
-                  onChanged: (v) => setState(() => _selectedAuthor = v),
+                  onChanged: (v) =>
+                      setState(() => _selectedAuthor = v),
                   decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
@@ -180,9 +253,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   value: _selectedCategory,
                   hint: const Text("Tipo"),
                   items: categories
-                      .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                      .map((c) =>
+                          DropdownMenuItem(value: c, child: Text(c)))
                       .toList(),
-                  onChanged: (v) => setState(() => _selectedCategory = v),
+                  onChanged: (v) =>
+                      setState(() => _selectedCategory = v),
                   decoration: const InputDecoration(
                     filled: true,
                     fillColor: Colors.white,
@@ -203,9 +278,10 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  Widget _buildBooksGrid(List<Map<String, dynamic>> books) {
+  Widget _buildBooksGrid(List<dynamic> books) {
     return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+      gridDelegate:
+          const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
@@ -234,7 +310,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  book['titulo'],
+                  book['titulo'] ?? '',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     color: Colors.white,
@@ -255,10 +331,11 @@ class _StudentDashboardState extends State<StudentDashboard> {
                     ),
                   ),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
                     children: [
                       Text(
-                        book['titulo'],
+                        book['titulo'] ?? '',
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -269,7 +346,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        book['autor'],
+                        book['autor'] ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -278,22 +355,54 @@ class _StudentDashboardState extends State<StudentDashboard> {
                         ),
                       ),
                       const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: primaryColor),
-                        ),
-                        child: Text(
-                          book['area'],
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: primaryColor,
+                      Row(
+                        mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding:
+                                const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.circular(20),
+                              border: Border.all(
+                                  color: primaryColor),
+                            ),
+                            child: Text(
+                              book['area'] ?? '',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: primaryColor,
+                              ),
+                            ),
                           ),
-                        ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  primaryColor,
+                              padding:
+                                  const EdgeInsets.symmetric(
+                                      horizontal: 10),
+                            ),
+                            onPressed: () {
+                              _solicitarLibro(
+  
+                                book['id_libro']
+                                    .toString(),
+                                book['titulo']
+                                    .toString(),
+                              );
+                            },
+                            child: const Text(
+                              "Solicitar",
+                              style: TextStyle(
+                                  fontSize: 10),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -307,12 +416,19 @@ class _StudentDashboardState extends State<StudentDashboard> {
   }
 
   Widget _buildLoans() {
+    if (_loans.isEmpty) {
+      return const Center(
+        child: Text("No hay solicitudes registradas"),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: ListView.builder(
         itemCount: _loans.length,
         itemBuilder: (context, index) {
           final loan = _loans[index];
+
           return Container(
             margin: const EdgeInsets.only(bottom: 14),
             padding: const EdgeInsets.all(14),
@@ -323,11 +439,13 @@ class _StudentDashboardState extends State<StudentDashboard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loan['libro'],
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text("Fecha: ${loan['fecha']}"),
-                Text("Devolución: ${loan['devolucion']}"),
-                Text("Estado: ${loan['estado']}"),
+                Text(
+                  loan['libro'] ?? '',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 6),
+                Text("Fecha: ${loan['fecha'] ?? ''}"),
+                Text("Estado: ${loan['estado'] ?? ''}"),
               ],
             ),
           );

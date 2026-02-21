@@ -1,0 +1,18 @@
+<lint-module
+    format="1"
+    dir="C:\Users\intel ci3\Biblioteca-escolar\app_flutter\student_dashboard\android\app"
+    name=":app"
+    type="APP"
+    maven="android:app:unspecified"
+    agpVersion="8.11.1"
+    buildFolder="C:\Users\intel ci3\Biblioteca-escolar\app_flutter\student_dashboard\build\app"
+    bootClassPath="C:\Users\intel ci3\AppData\Local\Android\Sdk\platforms\android-36\android.jar;C:\Users\intel ci3\AppData\Local\Android\Sdk\build-tools\35.0.0\core-lambda-stubs.jar"
+    javaSourceLevel="17"
+    compileTarget="android-36">
+  <lintOptions
+      abortOnError="true"
+      absolutePaths="true"
+      checkReleaseBuilds="true"
+      explainIssues="true"/>
+  <variant name="release"/>
+</lint-module>
