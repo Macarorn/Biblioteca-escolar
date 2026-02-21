@@ -134,7 +134,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                   ),
                 ),
                 Text(
-                  'Hola, ${widget.userName}',
+                  'Bienvenido, ${widget.userName}',
                   style: TextStyle(
                     color: textColor.withValues(alpha: 0.6),
                     fontSize: 12,
