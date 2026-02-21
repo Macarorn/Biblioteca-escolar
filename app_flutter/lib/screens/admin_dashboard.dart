@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'dart:math';
 import 'package:provider/provider.dart';
 import '../services/libros_service.dart';
 import '../widgets/change_password_dialog.dart';
@@ -48,26 +49,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
   List<Map<String, dynamic>> _loans = [];
   List<Map<String, dynamic>> _books = [];
 
-  final List<Map<String, dynamic>> _users = [
-    {
-      'name': 'Juan Pérez',
-      'role': 'estudiante',
-      'doc': '1001',
-      'email': 'juan@estudiante.com',
-    },
-    {
-      'name': 'María González',
-      'role': 'profesor',
-      'doc': '2001',
-      'email': 'maria@profesor.com',
-    },
-    {
-      'name': 'Ana Martínez',
-      'role': 'administrador',
-      'doc': '4001',
-      'email': 'ana@admin.com',
-    },
-  ];
+  // lista se carga desde el backend
+  List<Map<String, dynamic>> _users = [];
+  bool _isLoadingUsers = false;
+
+  // Filtros para préstamos
+  String _loanFilterStatus = 'todos'; // 'todos', 'activo', 'devuelto'
+  String _loanFilterUser = ''; // filtro por nombre de usuario
+  DateTime? _loanFilterDateFrom;
+  DateTime? _loanFilterDateTo;
 
   // ── Helpers reutilizables ──
 
@@ -135,6 +125,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       _loadBooks();
       _loadLoans();
       _loadSolicitudes();
+      _loadUsers();
     }
   }
 
@@ -240,6 +231,33 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
+  /// Carga los usuarios desde la API y los transforma para la UI
+  Future<void> _loadUsers() async {
+    setState(() => _isLoadingUsers = true);
+    try {
+      final usuarios = await _librosService.getUsuarios();
+      final list = usuarios.map((u) {
+        return {
+          'id_usuario': _toInt(u['id_usuario']),
+          'nombre': u['nombre'] ?? '',
+          'apellido': u['apellido'] ?? '',
+          'role': u['tipo_usuario'] ?? '',
+          'doc': u['documento'] ?? '',
+          'email': u['email'] ?? '', // la base de datos no tiene correo,
+          // este campo queda vacío por ahora
+        };
+      }).toList();
+      if (mounted) {
+        setState(() {
+          _users = list;
+          _isLoadingUsers = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingUsers = false);
+    }
+  }
+
   void _showChangePasswordDialog({bool mandatory = false}) {
     showDialog(
       context: context,
@@ -255,83 +273,164 @@ class _AdminDashboardState extends State<AdminDashboard> {
     super.dispose();
   }
 
+  /// devuelve una contraseña aleatoria de longitud `len`
+  String _randomPassword(int len) {
+    const chars =
+        'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final rnd = Random.secure();
+    return List.generate(len, (_) => chars[rnd.nextInt(chars.length)]).join();
+  }
+
   void _showAddUserDialog({Map<String, dynamic>? user, int? index}) {
     final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController(text: user?['name']);
+    final firstController = TextEditingController(text: user?['nombre']);
+    final lastController = TextEditingController(text: user?['apellido']);
     final docController = TextEditingController(text: user?['doc']);
     final emailController = TextEditingController(text: user?['email']);
+    final passwordController = TextEditingController();
+    bool showPassword = false;
     String role = user?['role'] ?? 'estudiante';
     final isEditing = user != null;
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: _cardColor,
-        title: Text(
-          isEditing ? 'Editar Usuario' : 'Nuevo Usuario',
-          style: const TextStyle(color: _textColor),
-        ),
-        content: Form(
-          key: formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: nameController,
-                  decoration: const InputDecoration(labelText: 'Nombre'),
-                  validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: docController,
-                  decoration: const InputDecoration(labelText: 'Documento'),
-                  validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                ),
-                TextFormField(
-                  controller: emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  validator: (v) => v!.isEmpty ? 'Requerido' : null,
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: role,
-                  dropdownColor: _cardColor,
-                  decoration: const InputDecoration(labelText: 'Rol'),
-                  items:
-                      const [
-                            'estudiante',
-                            'profesor',
-                            'bibliotecario',
-                            'administrador',
-                          ]
-                          .map(
-                            (r) => DropdownMenuItem(value: r, child: Text(r)),
-                          )
-                          .toList(),
-                  onChanged: (v) => role = v!,
-                ),
-              ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: _cardColor,
+          title: Text(
+            isEditing ? 'Editar Usuario' : 'Nuevo Usuario',
+            style: const TextStyle(color: _textColor),
+          ),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: firstController,
+                    decoration: const InputDecoration(labelText: 'Nombre'),
+                    validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                  ),
+                  TextFormField(
+                    controller: lastController,
+                    decoration: const InputDecoration(labelText: 'Apellido'),
+                    validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                  ),
+                  TextFormField(
+                    controller: docController,
+                    decoration: const InputDecoration(labelText: 'Documento'),
+                    validator: (v) => v!.isEmpty ? 'Requerido' : null,
+                  ),
+                  TextFormField(
+                    controller: emailController,
+                    decoration:
+                        const InputDecoration(labelText: 'Email (opcional)'),
+                  ),
+                  if (!isEditing) ...[
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: passwordController,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        suffixIcon: IconButton(
+                          icon: Icon(showPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility),
+                          onPressed: () => setDialogState(
+                              () => showPassword = !showPassword),
+                        ),
+                      ),
+                      obscureText: !showPassword,
+                      // la contraseña puede quedar vacía y se generará una
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          setDialogState(() {
+                            final generated = _randomPassword(8);
+                            passwordController.text = generated;
+                          });
+                        },
+                        child: const Text('Generar aleatoria'),
+                      ),
+                    ),
+                  ],
+                  DropdownButtonFormField<String>(
+                    initialValue: role,
+                    dropdownColor: _cardColor,
+                    decoration: const InputDecoration(labelText: 'Rol'),
+                    items:
+                        const [
+                              'estudiante',
+                              'profesor',
+                              'bibliotecario',
+                              'administrador',
+                            ]
+                            .map(
+                              (r) => DropdownMenuItem(value: r, child: Text(r)),
+                            )
+                            .toList(),
+                    onChanged: (v) => role = v!,
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-        actions: _buildDialogActions(
-          onConfirm: () {
-            if (formKey.currentState!.validate()) {
-              setState(() {
-                final newUser = {
-                  'name': nameController.text,
-                  'role': role,
-                  'doc': docController.text,
-                  'email': emailController.text,
-                };
-                if (isEditing) {
-                  _users[index!] = newUser;
-                } else {
-                  _users.add(newUser);
+          actions: _buildDialogActions(
+            onConfirm: () async {
+              if (formKey.currentState!.validate()) {
+                Navigator.pop(context);
+                String usedPassword = passwordController.text;
+                if (!isEditing && usedPassword.isEmpty) {
+                  usedPassword = _randomPassword(8);
                 }
-              });
-              Navigator.pop(context);
-            }
-          },
+                try {
+                  final data = {
+                    'nombre': firstController.text,
+                    'apellido': lastController.text,
+                    'documento': docController.text,
+                    'tipo_usuario': role,
+                  };
+                  if (!isEditing) {
+                    data['contrasena'] = usedPassword;
+                    await _librosService.createUsuario(data);
+                  } else {
+                    if (usedPassword.isNotEmpty) {
+                      data['contrasena'] = usedPassword;
+                    }
+                    await _librosService.updateUsuario(user!['id_usuario'], data);
+                  }
+                  _loadUsers();
+                  if (!isEditing) {
+                    // mostrar contraseña generada al administrador
+                    if (mounted) {
+                      showDialog(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Contraseña creada'),
+                          content: Text(
+                              'La contraseña del usuario es: $usedPassword'),
+                          actions: [
+                            TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Aceptar'))
+                          ],
+                        ),
+                      );
+                    }
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                  }
+                }
+              }
+            },
+          ),
         ),
       ),
     );
@@ -587,13 +686,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     decoration: const InputDecoration(labelText: 'Usuario'),
                     dropdownColor: _cardColor,
                     items: _users.map((user) {
+                      final full = '${user['nombre']} ${user['apellido']}'.trim();
                       return DropdownMenuItem<String>(
-                        value: user['name'] as String,
-                        child: Text(user['name'] as String),
+                        value: full,
+                        child: Text(full),
                       );
                     }).toList(),
                     onChanged: (v) {
-                      selectedUser = _users.firstWhere((u) => u['name'] == v);
+                      selectedUser = _users.firstWhere((u) {
+                        final full = '${u['nombre']} ${u['apellido']}'.trim();
+                        return full == v;
+                      });
                     },
                     validator: (v) =>
                         v == null ? 'Seleccione un usuario' : null,
@@ -931,6 +1034,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildUserManagement() {
+    if (_isLoadingUsers) {
+      return const Center(
+        child: CircularProgressIndicator(
+          color: _primaryColor,
+        ),
+      );
+    }
+
     return _buildManagementLayout(
       title: 'Gestión de Usuarios',
       subtitle: 'Administra los usuarios del sistema',
@@ -941,6 +1052,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         separatorBuilder: (c, i) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final user = _users[index];
+          final fullName = '${user['nombre']} ${user['apellido']}'.trim();
           return Container(
             decoration: BoxDecoration(
               color: _itemColor,
@@ -957,7 +1069,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       Row(
                         children: [
                           Text(
-                            user['name'] as String,
+                            fullName,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
@@ -992,20 +1104,29 @@ class _AdminDashboardState extends State<AdminDashboard> {
                           fontSize: 13,
                         ),
                       ),
-                      Text(
-                        user['email'] as String,
-                        style: TextStyle(
-                          color: _textColor.withValues(alpha: 0.6),
-                          fontSize: 13,
+                      if ((user['email'] as String).isNotEmpty)
+                        Text(
+                          user['email'] as String,
+                          style: TextStyle(
+                            color: _textColor.withValues(alpha: 0.6),
+                            fontSize: 13,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
                 _buildActionButtons(
                   onDelete: () => _showDeleteConfirmation(
                     message: '¿Eliminar usuario?',
-                    onConfirm: () => setState(() => _users.removeAt(index)),
+                    onConfirm: () async {
+                      final id = user['id_usuario'];
+                      if (id != null) {
+                        try {
+                          await _librosService.deleteUsuario(id);
+                          _loadUsers();
+                        } catch (_) {}
+                      }
+                    },
                   ),
                   onEdit: () => _showAddUserDialog(user: user, index: index),
                 ),
@@ -1072,52 +1193,275 @@ class _AdminDashboardState extends State<AdminDashboard> {
       );
     }
 
-    // Separar préstamos activos de devueltos
-    final activos = _loans.where((l) => l['status'] == 'Prestado').toList();
-    final devueltos = _loans.where((l) => l['status'] == 'Devuelto').toList();
+    // Aplicar filtros
+    var filtered = _loans.where((l) {
+      // Filtro por estado
+      if (_loanFilterStatus != 'todos') {
+        final matches = _loanFilterStatus == 'activo'
+            ? l['status'] == 'Prestado'
+            : l['status'] == 'Devuelto';
+        if (!matches) return false;
+      }
+
+      // Filtro por usuario
+      if (_loanFilterUser.isNotEmpty) {
+        final user = (l['user'] ?? '').toString().toLowerCase();
+        if (!user.contains(_loanFilterUser.toLowerCase())) return false;
+      }
+
+      // Filtro por rango de fechas (fecha de préstamo)
+      if (_loanFilterDateFrom != null || _loanFilterDateTo != null) {
+        try {
+          final loanDateStr = l['loanDate'] as String? ?? '';
+          if (loanDateStr.isEmpty) return true;
+          final loanDate = DateTime.parse(loanDateStr);
+          if (_loanFilterDateFrom != null &&
+              loanDate.isBefore(_loanFilterDateFrom!)) return false;
+          if (_loanFilterDateTo != null &&
+              loanDate.isAfter(_loanFilterDateTo!)) return false;
+        } catch (_) {}
+      }
+
+      return true;
+    }).toList();
+
+    // Separar los filtrados por estado
+    final activos =
+        filtered.where((l) => l['status'] == 'Prestado').toList();
+    final devueltos =
+        filtered.where((l) => l['status'] == 'Devuelto').toList();
 
     return _buildManagementLayout(
       title: 'Préstamos',
       subtitle: 'Gestiona préstamos y devoluciones',
       buttonText: 'Nuevo Préstamo',
       onPressed: _showAddLoanDialog,
-      child: ListView(
+      child: Column(
         children: [
-          // ── Sección: Pendientes de devolución ──
-          _buildLoanSectionHeader(
-            icon: Icons.schedule,
-            label: 'Pendientes de devolución',
-            count: activos.length,
-            color: _primaryColor,
-          ),
-          const SizedBox(height: 8),
-          if (activos.isEmpty)
-            _buildEmptyLoanMessage('No hay préstamos activos')
-          else
-            ...activos.map(
-              (loan) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildActiveLoanCard(loan),
-              ),
+          // Panel de filtros
+          _buildLoanFiltersPanel(),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView(
+              children: [
+                // ── Sección: Pendientes de devolución ──
+                _buildLoanSectionHeader(
+                  icon: Icons.schedule,
+                  label: 'Pendientes de devolución',
+                  count: activos.length,
+                  color: _primaryColor,
+                ),
+                const SizedBox(height: 8),
+                if (activos.isEmpty)
+                  _buildEmptyLoanMessage('No hay préstamos activos')
+                else
+                  ...activos.map(
+                    (loan) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildActiveLoanCard(loan),
+                    ),
+                  ),
+                const SizedBox(height: 24),
+                // ── Sección: Devueltos ──
+                _buildLoanSectionHeader(
+                  icon: Icons.check_circle,
+                  label: 'Devueltos',
+                  count: devueltos.length,
+                  color: _primaryColor,
+                ),
+                const SizedBox(height: 8),
+                if (devueltos.isEmpty)
+                  _buildEmptyLoanMessage('No hay devoluciones registradas')
+                else
+                  ...devueltos.map(
+                    (loan) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildReturnedLoanCard(loan),
+                    ),
+                  ),
+              ],
             ),
-          const SizedBox(height: 24),
-          // ── Sección: Devueltos ──
-          _buildLoanSectionHeader(
-            icon: Icons.check_circle,
-            label: 'Devueltos',
-            count: devueltos.length,
-            color: _primaryColor,
           ),
-          const SizedBox(height: 8),
-          if (devueltos.isEmpty)
-            _buildEmptyLoanMessage('No hay devoluciones registradas')
-          else
-            ...devueltos.map(
-              (loan) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildReturnedLoanCard(loan),
-              ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoanFiltersPanel() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _accentColor),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Filtros',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: _textColor,
             ),
+          ),
+          const SizedBox(height: 12),
+          // Fila 1: Estado y Usuario
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  initialValue: _loanFilterStatus,
+                  decoration: const InputDecoration(
+                    labelText: 'Estado',
+                    isDense: true,
+                  ),
+                  dropdownColor: _cardColor,
+                  items: const [
+                    DropdownMenuItem(
+                      value: 'todos',
+                      child: Text('Todos'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'activo',
+                      child: Text('Activos'),
+                    ),
+                    DropdownMenuItem(
+                      value: 'devuelto',
+                      child: Text('Devueltos'),
+                    ),
+                  ],
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _loanFilterStatus = v);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  decoration: const InputDecoration(
+                    labelText: 'Buscar usuario',
+                    isDense: true,
+                    prefixIcon: Icon(Icons.person_search, size: 18),
+                  ),
+                  onChanged: (v) {
+                    setState(() => _loanFilterUser = v);
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          // Fila 2: Rango de fechas
+          Row(
+            children: [
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _loanFilterDateFrom ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setState(() => _loanFilterDateFrom = picked);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _accentColor),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _loanFilterDateFrom == null
+                                ? 'Desde...'
+                                : '${_loanFilterDateFrom!.day}/${_loanFilterDateFrom!.month}/${_loanFilterDateFrom!.year}',
+                            style: TextStyle(
+                              color: _loanFilterDateFrom == null
+                                  ? Colors.grey
+                                  : _textColor,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: GestureDetector(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: _loanFilterDateTo ?? DateTime.now(),
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setState(() => _loanFilterDateTo = picked);
+                    }
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: _accentColor),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today, size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _loanFilterDateTo == null
+                                ? 'Hasta...'
+                                : '${_loanFilterDateTo!.day}/${_loanFilterDateTo!.month}/${_loanFilterDateTo!.year}',
+                            style: TextStyle(
+                              color: _loanFilterDateTo == null
+                                  ? Colors.grey
+                                  : _textColor,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Botón Limpiar
+              TextButton(
+                onPressed: () {
+                  setState(() {
+                    _loanFilterStatus = 'todos';
+                    _loanFilterUser = '';
+                    _loanFilterDateFrom = null;
+                    _loanFilterDateTo = null;
+                  });
+                },
+                child: const Text('Limpiar'),
+              ),
+            ],
+          ),
         ],
       ),
     );
