@@ -157,4 +157,26 @@ class LibrosService {
     }
     throw Exception('Error al obtener usuarios: ${response.body}');
   }
+
+  Future<Map<String, dynamic>> createUsuario(Map<String, dynamic> data) async {
+    final response = await api.post('/usuarios', body: jsonEncode(data));
+    if (response.statusCode == 201) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception('Error al crear usuario: ${response.body}');
+  }
+
+  Future<void> updateUsuario(int id, Map<String, dynamic> data) async {
+    final response = await api.put('/usuarios/$id', body: jsonEncode(data));
+    if (response.statusCode != 200) {
+      throw Exception('Error al actualizar usuario: ${response.body}');
+    }
+  }
+
+  Future<void> deleteUsuario(int id) async {
+    final response = await api.delete('/usuarios/$id');
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar usuario: ${response.body}');
+    }
+  }
 }
