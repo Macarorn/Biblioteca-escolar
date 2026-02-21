@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
-import 'login_mock_screen.dart';
+//mport 'login_mock_screen.dart';
+import 'login_screen.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-class StudentDashboard extends StatefulWidget {
+class Dashboard extends StatefulWidget {
   final String userName;
+  final String rol; // 👈 NUEVO
 
-  const StudentDashboard({super.key, required this.userName});
-
+  const Dashboard({
+    super.key,
+    required this.userName,
+    required this.rol,
+  });
   @override
-  State<StudentDashboard> createState() => _StudentDashboardState();
+  State<Dashboard> createState() => _DashboardState();
 }
 
-class _StudentDashboardState extends State<StudentDashboard> {
+class _DashboardState extends State<Dashboard> {
   static const Color backgroundColor = Color(0xFFEAE2D7);
   static const Color cardColor = Colors.white;
   static const Color primaryColor = Color(0xFF8D7B68);
@@ -115,7 +120,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
   void _logout() {
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LoginMockScreen()),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
   }
