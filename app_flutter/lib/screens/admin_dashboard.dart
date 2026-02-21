@@ -6,8 +6,13 @@ import '../widgets/change_password_dialog.dart';
 import 'book_detail_screen.dart';
 import 'login_screen.dart';
 
+
+
 class AdminDashboard extends StatefulWidget {
+  /// El nombre del usuario actualmente conectado.
   final String userName;
+
+  /// El rol del usuario .
   final String userRole;
 
   const AdminDashboard({
@@ -21,7 +26,7 @@ class AdminDashboard extends StatefulWidget {
 }
 
 class _AdminDashboardState extends State<AdminDashboard> {
-  //  Colores reutilizables
+  // Colores reutilizables para la interfaz de usuario.
   static const _backgroundColor = Color(0xFFEAE2D7);
   static const _cardColor = Color(0xFFF3EFE7);
   static const _primaryColor = Color(0xFF8D7B68);
@@ -33,53 +38,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
   int _booksTabIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _userSearchController = TextEditingController();
+  final TextEditingController _loanDateFromController = TextEditingController();
+  final TextEditingController _loanDateToController = TextEditingController();
   String _bookSearchQuery = '';
   String? _selectedCategoryFilter;
   bool _showAvailableOnly = false;
 
-  // ── Estado de carga ──
+  // Estado de carga
   late LibrosService _librosService;
   bool _dataLoaded = false;
   bool _isLoadingBooks = false;
   bool _isLoadingLoans = false;
   bool _isLoadingSolicitudes = false;
 
-  // ── Datos cargados del API ──
+  // Datos
   List<Map<String, dynamic>> _solicitudes = [];
   List<Map<String, dynamic>> _loans = [];
   List<Map<String, dynamic>> _books = [];
-
-  // lista se carga desde el backend
   List<Map<String, dynamic>> _users = [];
   bool _isLoadingUsers = false;
 
-  // Filtros para préstamos
-  String _loanFilterStatus = 'todos'; // 'todos', 'activo', 'devuelto'
-  String _loanFilterUser = ''; // filtro por nombre de usuario
+  // Filtros
+  String _loanFilterStatus = 'todos';
+  String _loanFilterUser = '';
   DateTime? _loanFilterDateFrom;
   DateTime? _loanFilterDateTo;
-
-  // ── Helpers reutilizables ──
-
-  List<Widget> _buildDialogActions({
-    required VoidCallback onConfirm,
-    String confirmLabel = 'Guardar',
-  }) {
-    return [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text('Cancelar', style: TextStyle(color: _textColor)),
-      ),
-      ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: _primaryColor,
-          foregroundColor: Colors.white,
-        ),
-        onPressed: onConfirm,
-        child: Text(confirmLabel),
-      ),
-    ];
-  }
 
   void _showDeleteConfirmation({
     required String message,
@@ -108,11 +91,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
+  List<Widget> _buildDialogActions({
+    required VoidCallback onConfirm,
+    String confirmLabel = 'Guardar',
+  }) {
+    return [
+      TextButton(
+        onPressed: () => Navigator.pop(context),
+        child: const Text('Cancelar', style: TextStyle(color: _textColor)),
+      ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: _primaryColor,
+          foregroundColor: Colors.white,
+        ),
+        onPressed: onConfirm,
+        child: Text(confirmLabel),
+      ),
+    ];
+  }
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // _showChangePasswordDialog(mandatory: true);
+  
     });
   }
 
@@ -129,7 +132,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // ── Métodos de carga desde API ──
+  //   Métodos de carga desde API
 
   int _toInt(dynamic value, [int fallback = 0]) {
     if (value is int) return value;
@@ -201,7 +204,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
           _isLoadingLoans = false;
         });
     } catch (e) {
-      if (mounted) setState(() => _isLoadingLoans = false);
+      if (mounted) {
+        setState(() {
+          _isLoadingLoans = false;
+        });
+      }
     }
   }
 
@@ -227,7 +234,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingSolicitudes = false);
+      if (mounted) {
+        setState(() {
+          _isLoadingSolicitudes = false;
+        });
+      }
     }
   }
 
@@ -254,7 +265,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingUsers = false);
+      if (mounted) {
+        setState(() {
+          _isLoadingUsers = false;
+        });
+      }
     }
   }
 
@@ -270,6 +285,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   void dispose() {
     _searchController.dispose();
     _userSearchController.dispose();
+    _loanDateFromController.dispose();
+    _loanDateToController.dispose();
     super.dispose();
   }
 
@@ -324,8 +341,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                   TextFormField(
                     controller: emailController,
-                    decoration:
-                        const InputDecoration(labelText: 'Email (opcional)'),
+                    decoration: const InputDecoration(
+                      labelText: 'Email (opcional)',
+                    ),
                   ),
                   if (!isEditing) ...[
                     const SizedBox(height: 8),
@@ -334,11 +352,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       decoration: InputDecoration(
                         labelText: 'Contraseña',
                         suffixIcon: IconButton(
-                          icon: Icon(showPassword
-                              ? Icons.visibility_off
-                              : Icons.visibility),
+                          icon: Icon(
+                            showPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
                           onPressed: () => setDialogState(
-                              () => showPassword = !showPassword),
+                            () => showPassword = !showPassword,
+                          ),
                         ),
                       ),
                       obscureText: !showPassword,
@@ -400,7 +421,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     if (usedPassword.isNotEmpty) {
                       data['contrasena'] = usedPassword;
                     }
-                    await _librosService.updateUsuario(user!['id_usuario'], data);
+                    await _librosService.updateUsuario(
+                      user['id_usuario'] ?? 0,
+                      data,
+                    );
                   }
                   _loadUsers();
                   if (!isEditing) {
@@ -408,14 +432,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     if (mounted) {
                       showDialog(
                         context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text('Contraseña creada'),
+                        builder: (ctx) => AlertDialog(
+                          backgroundColor: _cardColor,
+                          title: const Text(
+                            'Contraseña creada',
+                            style: TextStyle(color: _textColor),
+                          ),
                           content: Text(
-                              'La contraseña del usuario es: $usedPassword'),
+                            'La contraseña del usuario es: $usedPassword',
+                            style: TextStyle(color: _textColor),
+                          ),
                           actions: [
                             TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Aceptar'))
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text(
+                                'Aceptar',
+                                style: TextStyle(color: _primaryColor),
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -686,7 +720,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     decoration: const InputDecoration(labelText: 'Usuario'),
                     dropdownColor: _cardColor,
                     items: _users.map((user) {
-                      final full = '${user['nombre']} ${user['apellido']}'.trim();
+                      final full = '${user['nombre']} ${user['apellido']}'
+                          .trim();
                       return DropdownMenuItem<String>(
                         value: full,
                         child: Text(full),
@@ -739,22 +774,40 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       backgroundColor: _backgroundColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildTabs(),
-                    const SizedBox(height: 16),
-                    Expanded(child: _buildContent()),
-                  ],
-                ),
+        child: Theme(
+          data: Theme.of(context).copyWith(
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: _itemColor,
+              prefixIconColor: _primaryColor,
+              hintStyle: TextStyle(color: Colors.grey.shade500),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                vertical: 14,
+                horizontal: 16,
               ),
             ),
-          ],
+          ),
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      _buildTabs(),
+                      const SizedBox(height: 16),
+                      Expanded(child: _buildContent()),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -1036,9 +1089,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget _buildUserManagement() {
     if (_isLoadingUsers) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: _primaryColor,
-        ),
+        child: CircularProgressIndicator(color: _primaryColor),
       );
     }
 
@@ -1216,9 +1267,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
           if (loanDateStr.isEmpty) return true;
           final loanDate = DateTime.parse(loanDateStr);
           if (_loanFilterDateFrom != null &&
-              loanDate.isBefore(_loanFilterDateFrom!)) return false;
-          if (_loanFilterDateTo != null &&
-              loanDate.isAfter(_loanFilterDateTo!)) return false;
+              loanDate.isBefore(_loanFilterDateFrom!))
+            return false;
+          if (_loanFilterDateTo != null && loanDate.isAfter(_loanFilterDateTo!))
+            return false;
         } catch (_) {}
       }
 
@@ -1226,10 +1278,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }).toList();
 
     // Separar los filtrados por estado
-    final activos =
-        filtered.where((l) => l['status'] == 'Prestado').toList();
-    final devueltos =
-        filtered.where((l) => l['status'] == 'Devuelto').toList();
+    final activos = filtered.where((l) => l['status'] == 'Prestado').toList();
+    final devueltos = filtered.where((l) => l['status'] == 'Devuelto').toList();
 
     return _buildManagementLayout(
       title: 'Préstamos',
@@ -1244,7 +1294,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           Expanded(
             child: ListView(
               children: [
-                // ── Sección: Pendientes de devolución ──
+                //   Sección: Pendientes de devolución
                 _buildLoanSectionHeader(
                   icon: Icons.schedule,
                   label: 'Pendientes de devolución',
@@ -1262,7 +1312,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ),
                   ),
                 const SizedBox(height: 24),
-                // ── Sección: Devueltos ──
+                //   Sección: Devueltos
                 _buildLoanSectionHeader(
                   icon: Icons.check_circle,
                   label: 'Devueltos',
@@ -1319,14 +1369,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   ),
                   dropdownColor: _cardColor,
                   items: const [
-                    DropdownMenuItem(
-                      value: 'todos',
-                      child: Text('Todos'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'activo',
-                      child: Text('Activos'),
-                    ),
+                    DropdownMenuItem(value: 'todos', child: Text('Todos')),
+                    DropdownMenuItem(value: 'activo', child: Text('Activos')),
                     DropdownMenuItem(
                       value: 'devuelto',
                       child: Text('Devueltos'),
@@ -1355,96 +1399,102 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ],
           ),
           const SizedBox(height: 12),
-          // Fila 2: Rango de fechas
+          // Fila: campos de fecha (readOnly) con showDatePicker tematizado
           Row(
             children: [
               Expanded(
-                child: GestureDetector(
+                child: TextFormField(
+                  controller: _loanDateFromController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Desde',
+                    prefixIcon: Icon(Icons.calendar_today),
+                    isDense: true,
+                  ),
                   onTap: () async {
                     final picked = await showDatePicker(
                       context: context,
                       initialDate: _loanFilterDateFrom ?? DateTime.now(),
                       firstDate: DateTime(2020),
                       lastDate: DateTime.now(),
-                    );
-                    if (picked != null) {
-                      setState(() => _loanFilterDateFrom = picked);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _accentColor),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _loanFilterDateFrom == null
-                                ? 'Desde...'
-                                : '${_loanFilterDateFrom!.day}/${_loanFilterDateFrom!.month}/${_loanFilterDateFrom!.year}',
-                            style: TextStyle(
-                              color: _loanFilterDateFrom == null
-                                  ? Colors.grey
-                                  : _textColor,
-                              fontSize: 13,
+                      builder: (context, child) {
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 380),
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: _primaryColor,
+                                  onPrimary: Colors.white,
+                                  surface: _cardColor,
+                                  onSurface: _textColor,
+                                ),
+                                dialogTheme: DialogThemeData(
+                                  backgroundColor: _cardColor,
+                                ),
+                              ),
+                              child: child ?? const SizedBox.shrink(),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _loanFilterDateFrom = picked;
+                        _loanDateFromController.text =
+                            '${picked.day}/${picked.month}/${picked.year}';
+                      });
+                    }
+                  },
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: GestureDetector(
+                child: TextFormField(
+                  controller: _loanDateToController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Hasta',
+                    prefixIcon: Icon(Icons.calendar_today),
+                    isDense: true,
+                  ),
                   onTap: () async {
                     final picked = await showDatePicker(
                       context: context,
                       initialDate: _loanFilterDateTo ?? DateTime.now(),
                       firstDate: DateTime(2020),
                       lastDate: DateTime.now(),
-                    );
-                    if (picked != null) {
-                      setState(() => _loanFilterDateTo = picked);
-                    }
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: _accentColor),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today, size: 16),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _loanFilterDateTo == null
-                                ? 'Hasta...'
-                                : '${_loanFilterDateTo!.day}/${_loanFilterDateTo!.month}/${_loanFilterDateTo!.year}',
-                            style: TextStyle(
-                              color: _loanFilterDateTo == null
-                                  ? Colors.grey
-                                  : _textColor,
-                              fontSize: 13,
+                      builder: (context, child) {
+                        return Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 380),
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                colorScheme: ColorScheme.light(
+                                  primary: _primaryColor,
+                                  onPrimary: Colors.white,
+                                  surface: _cardColor,
+                                  onSurface: _textColor,
+                                ),
+                                dialogTheme: DialogThemeData(
+                                  backgroundColor: _cardColor,
+                                ),
+                              ),
+                              child: child ?? const SizedBox.shrink(),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        _loanFilterDateTo = picked;
+                        _loanDateToController.text =
+                            '${picked.day}/${picked.month}/${picked.year}';
+                      });
+                    }
+                  },
                 ),
               ),
               const SizedBox(width: 8),
@@ -1456,6 +1506,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     _loanFilterUser = '';
                     _loanFilterDateFrom = null;
                     _loanFilterDateTo = null;
+                    _loanDateFromController.text = '';
+                    _loanDateToController.text = '';
                   });
                 },
                 child: const Text('Limpiar'),
@@ -1542,7 +1594,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Encabezado con estado ──
+          //   Encabezado con estado
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
@@ -1589,7 +1641,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               ],
             ),
           ),
-          // ── Cuerpo ──
+          //   Cuerpo
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -1624,7 +1676,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 const SizedBox(height: 4),
                 _buildLoanInfoRow(Icons.event, 'Vence', loan['returnDate']),
                 const SizedBox(height: 16),
-                // ── Botón claro de devolución ──
+                //   Botón claro de devolución
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -1940,7 +1992,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // ── Devolución ──
+  //   Devolución
 
   void _showReturnLoanDialog(Map<String, dynamic> loan) {
     String condition = 'bueno';
@@ -1986,7 +2038,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: condition,
+                  initialValue: condition,
                   dropdownColor: _cardColor,
                   decoration: InputDecoration(
                     filled: true,
@@ -2086,7 +2138,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  // ── Bandeja de Solicitudes ──
+  //   Bandeja de Solicitudes
 
   Widget _buildSolicitudesView() {
     if (_isLoadingSolicitudes) {
@@ -2186,6 +2238,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final isAprobada = solicitud['estado'] == 'aprobada';
 
     final Color statusColor = _primaryColor;
+    final String statusText;
+    if (isPendiente) {
+      statusText = 'PENDIENTE';
+    } else if (isAprobada) {
+      statusText = 'APROBADA';
+    } else {
+      statusText = 'RECHAZADA';
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -2235,7 +2295,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    solicitud['estado'].toString().toUpperCase(),
+                    statusText,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
