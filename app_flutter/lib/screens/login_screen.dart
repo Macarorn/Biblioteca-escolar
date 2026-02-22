@@ -50,8 +50,13 @@ class _LoginScreenState extends State<LoginScreen> {
         if (result['rol'] == 'estudiante') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) =>
-                  StudentDashboard(userName: result['nombre']),
+              builder: (context) => StudentDashboard(
+                userName: result['nombre'],
+                rol: result['rol'],
+                userId: result['id'],
+            
+                
+              ),
             ),
           );
         } else if (result['rol'] == 'profesor') {

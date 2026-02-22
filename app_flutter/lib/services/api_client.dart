@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 /// Centraliza la URL base y agrega automáticamente el token JWT a cada petición.
 class ApiClient {
   /// URL base de la API (cambiar al desplegar).
-  static const String baseUrl = 'http://localhost:3000';
+  static const String baseUrl = 'http://localhost:4000';
 
   String? _token;
 

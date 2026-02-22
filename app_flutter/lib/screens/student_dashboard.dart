@@ -1,569 +1,358 @@
 import 'package:flutter/material.dart';
-import '../widgets/change_password_dialog.dart';
-import 'book_detail_screen.dart';
 import 'login_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class StudentDashboard extends StatefulWidget {
   final String userName;
+  final String rol; 
+  final String userId; // 👈 Nuevo: ID del usuario dinámico
 
-  const StudentDashboard({super.key, required this.userName});
+  const StudentDashboard({
+    super.key,
+    required this.userName,
+    required this.rol,
+    this.userId = '',
+  });
 
   @override
   State<StudentDashboard> createState() => _StudentDashboardState();
 }
 
 class _StudentDashboardState extends State<StudentDashboard> {
-  int _selectedIndex = 0;
+  static const Color backgroundColor = Color(0xFFEAE2D7);
+  static const Color cardColor = Colors.white;
+  static const Color primaryColor = Color(0xFF8D7B68);
+  static const Color textColor = Color(0xFF4E342E);
 
-  final List<Map<String, dynamic>> _books = [
-    {
-      'title': 'Cien Años de Soledad',
-      'author': 'Gabriel García Márquez',
-      'category': 'Literatura',
-      'available': 3,
-      'total': 5,
-    },
-    {
-      'title': 'Don Quijote de la Mancha',
-      'author': 'Miguel de Cervantes',
-      'category': 'Literatura',
-      'available': 2,
-      'total': 4,
-    },
-    {
-      'title': 'Física para Secundaria',
-      'author': 'Antonio López',
-      'category': 'Ciencias',
-      'available': 5,
-      'total': 6,
-    },
-    {
-      'title': 'Historia Universal',
-      'author': 'Laura Fernández',
-      'category': 'Historia',
-      'available': 0,
-      'total': 3,
-    },
-  ];
+  int _selectedIndex = 0;
+  String _searchQuery = '';
+  String? _selectedAuthor;
+  String? _selectedCategory;
+
+  List<dynamic> _books = [];
+  List<dynamic> _loans = [];
 
   @override
   void initState() {
     super.initState();
-    // Simular el cambio de contraseña obligatorio al inicio
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      // _showChangePasswordDialog(mandatory: true);
-    });
+    _loadBooks();
+    _loadSolicitudes();
   }
 
-  void _showChangePasswordDialog({bool mandatory = false}) {
-    showDialog(
-      context: context,
-      barrierDismissible: !mandatory,
-      builder: (context) => ChangePasswordDialog(isMandatory: mandatory),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Definir paleta de colores
-    final backgroundColor = Color(0xFFEAE2D7);
-    final cardColor = Color(0xFFF3EFE7);
-    final primaryColor = Color(0xFF8D7B68);
-    final textColor = Color(0xFF4E342E);
-
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(cardColor, textColor, primaryColor),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildTabs(cardColor, textColor, primaryColor),
-                    const SizedBox(height: 16),
-                    Expanded(child: _buildContent(textColor)),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent(Color textColor) {
-    if (_selectedIndex == 0) {
-      return _buildSearchBooks(textColor);
-    } else if (_selectedIndex == 1) {
-      return _buildMyRequests(textColor);
-    } else {
-      return _buildMyLoans(textColor);
+  // Cargar libros
+  Future<void> _loadBooks() async {
+    final url = Uri.parse("http://localhost:4000/libros");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        setState(() => _books = data);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al cargar libros: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error de conexión: $e")),
+      );
     }
   }
 
-  Widget _buildHeader(Color cardColor, Color textColor, Color primaryColor) {
-    return Container(
-      color: cardColor,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
+  // Cargar solicitudes
+  Future<void> _loadSolicitudes() async {
+    final url = Uri.parse("http://localhost:4000/solicitudes");
+    try {
+      final response = await http.post(
+        url,
+        body: {"id_usuario": widget.userId},
+      );
+      if (response.statusCode == 200) {
+        final List data = json.decode(response.body);
+        setState(() {
+          _loans = data;
+          _selectedIndex = 1;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al cargar solicitudes: ${response.statusCode}")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error de conexión: $e")),
+      );
+    }
+  }
+
+  // Solicitar libro
+  Future<void> _solicitarLibro(String idLibro, String titulo) async {
+    final url = Uri.parse("http://localhost:4000/solicitar");
+    try {
+      final response = await http.post(
+        url,
+        body: {"id_usuario": widget.userId, "id_libro": idLibro},
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _loans.add({
+            'libro': titulo,
+            'fecha': DateTime.now().toString().split(' ')[0],
+            'devolucion': 'Pendiente',
+            'estado': 'Pendiente',
+          });
+          _selectedIndex = 1;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Solicitud enviada")),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Error al solicitar")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error de conexión: $e")),
+      );
+    }
+  }
+
+  void _logout() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
+    );
+  }
+
+  List<String> get authors => _books
+      .map((b) => (b['autor'] ?? '').toString())
+      .where((a) => a.isNotEmpty)
+      .toSet()
+      .toList();
+
+  List<String> get categories => _books
+      .map((b) => (b['area'] ?? '').toString())
+      .where((c) => c.isNotEmpty)
+      .toSet()
+      .toList();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      drawer: _buildDrawer(),
+      appBar: AppBar(
+        backgroundColor: cardColor,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: textColor),
+        title: Text("Hola, ${widget.userName}", style: const TextStyle(color: textColor)),
+        actions: [_buildPopupMenu()],
+      ),
+      body: _selectedIndex == 0 ? _buildBooks() : _buildLoans(),
+    );
+  }
+
+  Drawer _buildDrawer() {
+    return Drawer(
+      backgroundColor: Colors.white,
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Color(0xFFD7CCC8),
-              shape: BoxShape.circle,
+          const SizedBox(height: 60),
+          _menuItem(Icons.menu_book, "Libros", 0),
+          _menuItem(Icons.assignment, "Solicitudes", 1),
+        ],
+      ),
+    );
+  }
+
+  Widget _menuItem(IconData icon, String text, int index) {
+    final selected = _selectedIndex == index;
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: selected ? primaryColor.withOpacity(0.15) : Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: primaryColor),
+        title: Text(text, style: const TextStyle(color: textColor)),
+        onTap: () {
+          setState(() => _selectedIndex = index);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+
+  PopupMenuButton<String> _buildPopupMenu() {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == "logout") _logout();
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: "profile", child: Text("Mi perfil")),
+        PopupMenuItem(value: "settings", child: Text("Configuración")),
+        PopupMenuDivider(),
+        PopupMenuItem(value: "logout", child: Text("Cerrar sesión", style: TextStyle(color: Colors.red))),
+      ],
+    );
+  }
+
+  Widget _buildBooks() {
+    final filtered = _books.where((b) {
+      final titulo = (b['titulo'] ?? '').toString().toLowerCase();
+      final autor = (b['autor'] ?? '').toString();
+      final area = (b['area'] ?? '').toString();
+      final q = _searchQuery.toLowerCase();
+      return titulo.contains(q) && (_selectedAuthor == null || autor == _selectedAuthor) && (_selectedCategory == null || area == _selectedCategory);
+    }).toList();
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          TextField(
+            decoration: const InputDecoration(
+              hintText: "Buscar libro...",
+              prefixIcon: Icon(Icons.search),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(borderSide: BorderSide.none),
             ),
-            child: Icon(Icons.menu_book, color: textColor, size: 20),
+            onChanged: (v) => setState(() => _searchQuery = v),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedAuthor,
+                  hint: const Text("Escritor"),
+                  items: authors.map((a) => DropdownMenuItem(value: a, child: Text(a))).toList(),
+                  onChanged: (v) => setState(() => _selectedAuthor = v),
+                  decoration: const InputDecoration(filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  hint: const Text("Tipo"),
+                  items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (v) => setState(() => _selectedCategory = v),
+                  decoration: const InputDecoration(filled: true, fillColor: Colors.white, border: OutlineInputBorder()),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Expanded(child: _buildBooksGrid(filtered)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBooksGrid(List<dynamic> books) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 3,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 0.65,
+      ),
+      itemCount: books.length,
+      itemBuilder: (context, index) {
+        final book = books[index];
+        return Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3EFE7),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+          ),
+          child: Column(
+            children: [
+              Container(
+                height: 130,
+                margin: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  book['titulo'] ?? '',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(book['titulo'] ?? '', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: textColor)),
+                      const SizedBox(height: 4),
+                      Text(book['autor'] ?? '', maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                      const Spacer(),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), border: Border.all(color: primaryColor)),
+                            child: Text(book['area'] ?? '', style: const TextStyle(fontSize: 10, color: primaryColor)),
+                          ),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: primaryColor, padding: const EdgeInsets.symmetric(horizontal: 10)),
+                            onPressed: () => _solicitarLibro(book['id_libro'].toString(), book['titulo'].toString()),
+                            child: const Text("Solicitar", style: TextStyle(fontSize: 10)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLoans() {
+    if (_loans.isEmpty) return const Center(child: Text("No hay solicitudes registradas"));
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: ListView.builder(
+        itemCount: _loans.length,
+        itemBuilder: (context, index) {
+          final loan = _loans[index];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(20)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  'Biblioteca',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                    color: textColor,
-                  ),
-                ),
-                Text(
-                  'Bienvenido, ${widget.userName}',
-                  style: TextStyle(
-                    color: textColor.withValues(alpha: 0.6),
-                    fontSize: 12,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(loan['libro'] ?? '', style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 6),
+                Text("Fecha: ${loan['fecha'] ?? ''}"),
+                Text("Estado: ${loan['estado'] ?? ''}"),
               ],
             ),
-          ),
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_vert, color: textColor),
-            onSelected: (value) {
-              if (value == 'change_password') {
-                _showChangePasswordDialog();
-              } else if (value == 'logout') {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                );
-              }
-            },
-            itemBuilder: (BuildContext context) {
-              return [
-                const PopupMenuItem(
-                  value: 'change_password',
-                  child: Row(
-                    children: [
-                      Icon(Icons.vpn_key_outlined, size: 18),
-                      SizedBox(width: 8),
-                      Text('Cambiar Contraseña'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout, size: 18),
-                      SizedBox(width: 8),
-                      Text('Cerrar Sesión'),
-                    ],
-                  ),
-                ),
-              ];
-            },
-          ),
-        ],
+          );
+        },
       ),
-    );
-  }
-
-  Widget _buildTabs(Color cardColor, Color textColor, Color primaryColor) {
-    return Container(
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(50),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          _buildTabItem(0, 'Libros', Icons.search, textColor, primaryColor),
-          _buildTabItem(
-            1,
-            'Solicitudes',
-            Icons.description_outlined,
-            textColor,
-            primaryColor,
-          ),
-          _buildTabItem(
-            2,
-            'Préstamos',
-            Icons.save_outlined,
-            textColor,
-            primaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabItem(
-    int index,
-    String label,
-    IconData icon,
-    Color textColor,
-    Color primaryColor,
-  ) {
-    final isSelected = _selectedIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _selectedIndex = index),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: isSelected ? primaryColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(50),
-          ),
-          child: Column(
-            // Stack vertically on small screens or keep row but optimize
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: isSelected
-                    ? Colors.white
-                    : textColor.withValues(alpha: 0.5),
-              ),
-              if (MediaQuery.of(context).size.width > 350) ...[
-                // Only show text if mostly wide enough
-                const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                    color: isSelected
-                        ? Colors.white
-                        : textColor.withValues(alpha: 0.5),
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(String message, Color textColor) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFFF3EFE7),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE0E0E0)),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-      child: Center(
-        child: Text(
-          message,
-          style: TextStyle(
-            color: textColor.withValues(alpha: 0.5),
-            fontSize: 14,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMyRequests(Color textColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Mis Solicitudes',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: textColor,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          'Historial de solicitudes',
-          style: TextStyle(color: textColor.withValues(alpha: 0.6)),
-        ),
-        const SizedBox(height: 16),
-        Expanded(
-          child: _buildEmptyState(
-            'No tienes solicitudes registradas',
-            textColor,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMyLoans(Color textColor) {
-    return Column(
-      children: [
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Préstamos Activos',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Libros prestados actualmente',
-                style: TextStyle(color: textColor.withValues(alpha: 0.6)),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: _buildEmptyState(
-                  'No tienes préstamos activos',
-                  textColor,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        Expanded(
-          flex: 1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Historial de Préstamos',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: textColor,
-                ),
-              ),
-
-              const SizedBox(height: 4),
-              const Text(
-                'Préstamos anteriores',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 16),
-              Expanded(child: _buildEmptyState('No hay historial', textColor)),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchBooks(Color textColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Buscar Libros',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'Busca por título, autor o área de conocimiento',
-          style: TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
-        TextField(
-          decoration: InputDecoration(
-            hintText: 'Buscar libros...',
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
-            filled: true,
-            fillColor: const Color(0xFFF1F5F9),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Expanded(
-          child: ListView.separated(
-            itemCount: _books.length,
-            separatorBuilder: (c, i) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final book = _books[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          BookDetailScreen(book: book, userRole: 'estudiante'),
-                    ),
-                  );
-                },
-                child: Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  color: Colors.white,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                book['title'] as String,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                book['author'] as String,
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Text(
-                                  book['category'] as String,
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Column(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDCFCE7),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Text(
-                                '${book['available']} Disp.',
-                                style: const TextStyle(
-                                  color: Color(0xFF166534),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            ElevatedButton(
-                              onPressed: (book['available'] as int) > 0
-                                  ? () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (ctx) => AlertDialog(
-                                          title: const Text(
-                                            'Confirmar Solicitud',
-                                          ),
-                                          content: Text(
-                                            '¿Deseas solicitar el libro "${book['title']}"?',
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(ctx),
-                                              child: const Text('Cancelar'),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed: () {
-                                                Navigator.pop(ctx);
-                                                ScaffoldMessenger.of(
-                                                  context,
-                                                ).showSnackBar(
-                                                  const SnackBar(
-                                                    content: Text(
-                                                      'Solicitud enviada correctamente',
-                                                    ),
-                                                    backgroundColor:
-                                                        Colors.green,
-                                                  ),
-                                                );
-                                              },
-                                              child: const Text('Solicitar'),
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  : null,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF0F172A),
-                                foregroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 0,
-                                ),
-                                minimumSize: const Size(0, 36),
-                              ),
-                              child: const Text('Solicitar'),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }
