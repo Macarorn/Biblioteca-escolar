@@ -18,13 +18,13 @@ class BookDetailScreen extends StatefulWidget {
 }
 
 class _BookDetailScreenState extends State<BookDetailScreen> {
-  // ── Colores reutilizables ──
+  // Colores reutilizables 
   static const _backgroundColor = Color(0xFFEAE2D7);
   static const _cardColor = Color(0xFFF3EFE7);
   static const _textColor = Color(0xFF4E342E);
   static const _primaryColor = Color(0xFF8D7B68);
 
-  // ── Opciones de condición reutilizables ──
+  //  Opciones de condición reutilizables 
   static const _conditionOptions = ['excelente', 'bueno', 'regular', 'malo'];
 
   bool get _isGestor =>
