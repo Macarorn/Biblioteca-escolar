@@ -1,0 +1,2355 @@
+{
+	"log": {
+		"version": "1.2",
+		"creator": {
+			"name": "Insomnia REST Client",
+			"version": "insomnia.desktop.app:v12.3.1"
+		},
+		"entries": [
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 3.297,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/devoluciones/1",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "200"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"c8-TEA7CYofQwRvFVp3b0kGY2fFyKo\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:14:36 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 200,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"id_devolucion\":1,\"id_prestamo\":2,\"fecha_devolucion\":\"2026-02-17T05:00:00.000Z\",\"observaciones\":\"Libro devuelto en buen estado\",\"id_usuario\":3,\"titulo\":\"Cien años de soledad - Edición Actualizada\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 3.297,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener devolucion por id"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 15.897000000000002,
+				"request": {
+					"method": "POST",
+					"url": "http://localhost:3000/prestamos/1/devolver",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"observaciones\": \"Libro devuelto en buen estado\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 201,
+					"statusText": "Created",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "68"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"44-a1Xbp7Zd1E10VBgmduTRMO6xdak\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:13:58 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 68,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Devolución registrada correctamente\",\"id_devolucion\":4}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 15.897000000000002,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Registrar devolucion"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 11.831,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/devoluciones",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "546"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"222-PXQ8rnZT08bB4f1AjHpZ7IS4H9s\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:12:40 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 546,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_devolucion\":1,\"id_prestamo\":2,\"fecha_devolucion\":\"2026-02-17T05:00:00.000Z\",\"observaciones\":\"Libro devuelto en buen estado\",\"id_usuario\":3,\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_devolucion\":2,\"id_prestamo\":1,\"fecha_devolucion\":\"2026-02-17T05:00:00.000Z\",\"observaciones\":\"Libro devuelto en buen estado\",\"id_usuario\":2,\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_devolucion\":3,\"id_prestamo\":4,\"fecha_devolucion\":\"2026-02-21T05:00:00.000Z\",\"observaciones\":null,\"id_usuario\":8,\"titulo\":\"El principito\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 11.831,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener todas las devoluciones"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 25.715,
+				"request": {
+					"method": "POST",
+					"url": "http://localhost:3000/prestamos",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"id_usuario\": 1,\n  \"id_ejemplar\": 3,\n  \"id_solicitud\": 1\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 201,
+					"statusText": "Created",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "61"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"3d-I9u0dwNl3RkKciEAxjjWadrF0S0\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:11:23 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 61,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Préstamo creado correctamente\",\"id_prestamo\":10}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 25.715,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Crear prestamo"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 20.552,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/prestamos/vencidos",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"id_usuario\": 1,\n  \"id_ejemplar\": 3,\n  \"id_solicitud\": 1\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "269"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"10d-ZCFSNVQxh1AExfNSTBpEKStuRlg\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:10:24 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 269,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_prestamo\":1,\"id_usuario\":2,\"id_ejemplar\":6,\"id_solicitud\":2,\"fecha_prestamo\":\"2026-02-17T05:00:00.000Z\",\"fecha_devolucion\":\"2024-01-01T05:00:00.000Z\",\"estado\":\"activo\",\"nombre\":\"Carlos\",\"apellido\":\"Pérez\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 20.552,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener prestamo vencido"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 12.635,
+				"request": {
+					"method": "PUT",
+					"url": "http://localhost:3000/prestamos/1/estado",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"estado\": \"vencido\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "46"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"2e-czmtKEV1wNDlW9oqvWYr4oXixJE\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:06:11 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 46,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Estado actualizado correctamente\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 12.635,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Cambiar estado a vencido "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 19.511,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/prestamos/1",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "296"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"128-MfzQtJwvHbuf1ilTVIoLUjX+Dgs\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:03:25 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 296,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"id_prestamo\":1,\"id_usuario\":2,\"id_ejemplar\":6,\"id_solicitud\":2,\"fecha_prestamo\":\"2026-02-17T05:00:00.000Z\",\"fecha_devolucion\":\"2024-01-01T05:00:00.000Z\",\"estado\":\"devuelto\",\"nombre\":\"Carlos\",\"apellido\":\"Pérez\",\"codigo_ejemplar\":\"EJ-006\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 19.511,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener prestamo por id "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 10.809,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/prestamos",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "1624"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"658-9hNT0UrvkKHjpITwt9JcRJLr6ds\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:02:51 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 1624,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_prestamo\":1,\"id_usuario\":2,\"id_ejemplar\":6,\"id_solicitud\":2,\"fecha_prestamo\":\"2026-02-17T05:00:00.000Z\",\"fecha_devolucion\":\"2024-01-01T05:00:00.000Z\",\"estado\":\"devuelto\",\"nombre\":\"Carlos\",\"apellido\":\"Pérez\",\"codigo_ejemplar\":\"EJ-006\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_prestamo\":2,\"id_usuario\":3,\"id_ejemplar\":10,\"id_solicitud\":3,\"fecha_prestamo\":\"2026-02-17T05:00:00.000Z\",\"fecha_devolucion\":null,\"estado\":\"devuelto\",\"nombre\":\"Laura\",\"apellido\":\"Gómez\",\"codigo_ejemplar\":\"EJ-010\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_prestamo\":3,\"id_usuario\":1,\"id_ejemplar\":3,\"id_solicitud\":1,\"fecha_prestamo\":\"2026-02-17T05:00:00.000Z\",\"fecha_devolucion\":null,\"estado\":\"activo\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"codigo_ejemplar\":\"EJ-003\",\"titulo\":\"El principito\"},{\"id_prestamo\":4,\"id_usuario\":8,\"id_ejemplar\":4,\"id_solicitud\":null,\"fecha_prestamo\":\"2026-02-21T05:00:00.000Z\",\"fecha_devolucion\":\"2026-02-21T05:00:00.000Z\",\"estado\":\"devuelto\",\"nombre\":\"johan\",\"apellido\":\"dejesus\",\"codigo_ejemplar\":\"EJ-004\",\"titulo\":\"El principito\"},{\"id_prestamo\":5,\"id_usuario\":8,\"id_ejemplar\":4,\"id_solicitud\":null,\"fecha_prestamo\":\"2026-02-21T05:00:00.000Z\",\"fecha_devolucion\":\"2026-03-08T05:00:00.000Z\",\"estado\":\"activo\",\"nombre\":\"johan\",\"apellido\":\"dejesus\",\"codigo_ejemplar\":\"EJ-004\",\"titulo\":\"El principito\"},{\"id_prestamo\":6,\"id_usuario\":1,\"id_ejemplar\":11,\"id_solicitud\":1,\"fecha_prestamo\":\"2026-02-21T05:00:00.000Z\",\"fecha_devolucion\":\"2026-03-08T05:00:00.000Z\",\"estado\":\"activo\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"codigo_ejemplar\":\"EJ-011\",\"titulo\":\"Cien años de soledad\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 10.809,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener todos los prestamos"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 20.687,
+				"request": {
+					"method": "PUT",
+					"url": "http://localhost:3000/solicitudes/1/estado",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"estado\": \"aprobada\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "62"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"3e-+oloSSLH+WxWp94+jg4rI4LGRkE\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:01:34 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 62,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Estado actualizado correctamente\",\"id_prestamo\":6}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 20.687,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Cambiar estado solicitud"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 9.768,
+				"request": {
+					"method": "POST",
+					"url": "http://localhost:3000/solicitudes",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"id_usuario\": 1,\n  \"id_libro\": 2\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 201,
+					"statusText": "Created",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "47"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"2f-riyJCJuj8wnoGbt1UPpljVYXQfc\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 03:00:39 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 47,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Solicitud creada\",\"id_solicitud\":5}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 9.768,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Crear solicitud"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 2.94,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/solicitudes/1",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "182"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"b6-SoXksDvyJ0EHk4QipaH6GeheOFA\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:59:26 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 182,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"id_solicitud\":1,\"id_usuario\":1,\"id_libro\":1,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"titulo\":\"Cien años de soledad\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 2.94,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener solicitud por id"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 6.956,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/solicitudes?estado=aprobada",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "585"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"249-uVp3kuNJJtV16Ed07yaydHUYcYE\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:58:51 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 585,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_solicitud\":1,\"id_usuario\":1,\"id_libro\":1,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"titulo\":\"Cien años de soledad\"},{\"id_solicitud\":2,\"id_usuario\":2,\"id_libro\":4,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Carlos\",\"apellido\":\"Pérez\",\"titulo\":\"Harry Potter y la piedra filosofal\"},{\"id_solicitud\":3,\"id_usuario\":3,\"id_libro\":5,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Laura\",\"apellido\":\"Gómez\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 6.956,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Filtrar estado aprobada"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 6.656,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/solicitudes?estado=pendiente",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "177"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"b1-Mxo7ddrT5FHZIlKa1kq71TZN4mc\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:57:34 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 177,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_solicitud\":4,\"id_usuario\":1,\"id_libro\":2,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"pendiente\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"titulo\":\"El principito\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 6.656,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Filtrar estado pendiente"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 32.135,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/solicitudes",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "761"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"2f9-ba4ZRuxB+kZxceSxbPSx0ruUu0c\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:56:36 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 761,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_solicitud\":1,\"id_usuario\":1,\"id_libro\":1,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"titulo\":\"Cien años de soledad\"},{\"id_solicitud\":2,\"id_usuario\":2,\"id_libro\":4,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Carlos\",\"apellido\":\"Pérez\",\"titulo\":\"Harry Potter y la piedra filosofal\"},{\"id_solicitud\":3,\"id_usuario\":3,\"id_libro\":5,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"aprobada\",\"nombre\":\"Laura\",\"apellido\":\"Gómez\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_solicitud\":4,\"id_usuario\":1,\"id_libro\":2,\"fecha_solicitud\":\"2026-02-17T05:00:00.000Z\",\"estado\":\"pendiente\",\"nombre\":\"Ana\",\"apellido\":\"Martínez\",\"titulo\":\"El principito\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 32.135,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener todas las solicitudes"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 10.968,
+				"request": {
+					"method": "DELETE",
+					"url": "http://localhost:3000/ejemplares/2",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"id_libro\": 1,\n  \"codigo_ejemplar\": \"EJ-001-ACTUALIZADO\",\n  \"condicion_fisica\": \"regular\",\n  \"disponibilidad\": \"prestado\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "32"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"20-IgmtLKOMZlAXiiaUsiUTdQ9+g8g\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:55:26 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 32,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Ejemplar eliminado\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 10.968,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Eliminar ejemplar "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 8.765,
+				"request": {
+					"method": "POST",
+					"url": "http://localhost:3000/ejemplares",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"id_libro\": 1,\n  \"codigo_ejemplar\": \"EJ-012\",\n  \"condicion_fisica\": \"bueno\",\n  \"disponibilidad\": \"disponible\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 201,
+					"statusText": "Created",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "73"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"49-14gUKgbAmEruCNW9ANgCMntY1LQ\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:51:16 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 73,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Ejemplar creado\",\"id_ejemplar\":13,\"codigo_ejemplar\":\"EJ-012\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 8.765,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Crear ejemplar "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 11.472,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros/1/disponibilidad",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "65"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"41-DpbaN6II1oD3lU7WH93EeAo78Cc\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:49:59 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 65,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"total\":2,\"disponibles\":\"1\",\"prestados\":\"1\",\"mantenimiento\":\"0\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 11.472,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Disponibilidad de un libro "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 7.912000000000001,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros/1/ejemplares",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "232"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"e8-NDZItWdXXEKaSYpCD/zxvVI8IDg\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:49:19 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 232,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_ejemplar\":2,\"id_libro\":1,\"codigo_ejemplar\":\"EJ-002\",\"condicion_fisica\":\"regular\",\"disponibilidad\":\"prestado\"},{\"id_ejemplar\":11,\"id_libro\":1,\"codigo_ejemplar\":\"EJ-011\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"disponible\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 7.912000000000001,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener ejemplares de un libro "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 6.104,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/ejemplares/2",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "147"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"93-x0tyfRW4RzDgBFoAgiySPtZhjRY\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:48:40 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 147,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"id_ejemplar\":2,\"id_libro\":1,\"codigo_ejemplar\":\"EJ-002\",\"condicion_fisica\":\"regular\",\"disponibilidad\":\"prestado\",\"titulo\":\"Cien años de soledad\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 6.104,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener ejemplar por id"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 18.006999999999998,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/ejemplares",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "1588"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"634-oliLHniKKz5nbFyDUnIJMQXYl0Q\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:47:59 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 1588,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_ejemplar\":2,\"id_libro\":1,\"codigo_ejemplar\":\"EJ-002\",\"condicion_fisica\":\"regular\",\"disponibilidad\":\"prestado\",\"titulo\":\"Cien años de soledad\"},{\"id_ejemplar\":3,\"id_libro\":2,\"codigo_ejemplar\":\"EJ-003\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"prestado\",\"titulo\":\"El principito\"},{\"id_ejemplar\":4,\"id_libro\":2,\"codigo_ejemplar\":\"EJ-004\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"prestado\",\"titulo\":\"El principito\"},{\"id_ejemplar\":5,\"id_libro\":3,\"codigo_ejemplar\":\"EJ-005\",\"condicion_fisica\":\"regular\",\"disponibilidad\":\"disponible\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_ejemplar\":6,\"id_libro\":3,\"codigo_ejemplar\":\"EJ-006\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"disponible\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_ejemplar\":7,\"id_libro\":4,\"codigo_ejemplar\":\"EJ-007\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"disponible\",\"titulo\":\"Harry Potter y la piedra filosofal\"},{\"id_ejemplar\":8,\"id_libro\":4,\"codigo_ejemplar\":\"EJ-008\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"disponible\",\"titulo\":\"Harry Potter y la piedra filosofal\"},{\"id_ejemplar\":9,\"id_libro\":5,\"codigo_ejemplar\":\"EJ-009\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"disponible\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_ejemplar\":10,\"id_libro\":5,\"codigo_ejemplar\":\"EJ-010\",\"condicion_fisica\":\"regular\",\"disponibilidad\":\"mantenimiento\",\"titulo\":\"Cien años de soledad - Edición Actualizada\"},{\"id_ejemplar\":11,\"id_libro\":1,\"codigo_ejemplar\":\"EJ-011\",\"condicion_fisica\":\"bueno\",\"disponibilidad\":\"disponible\",\"titulo\":\"Cien años de soledad\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 18.006999999999998,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Obtener todos los ejemplares "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 22.578,
+				"request": {
+					"method": "PUT",
+					"url": "http://localhost:3000/libros/3",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"codigo_libro\": \"L001\",\n  \"titulo\": \"Cien años de soledad - Edición Actualizada\",\n  \"autor\": \"Gabriel García Márquez\",\n  \"area\": \"Literatura\",\n  \"anio_publicacion\": 1967,\n  \"estado\": \"activo\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "31"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"1f-AA1F8GwaAfRNihYPnZNrchmwtB4\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:44:31 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 31,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Libro actualizado\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 22.578,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Actualizar libro"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 28.278000000000002,
+				"request": {
+					"method": "DELETE",
+					"url": "http://localhost:3000/libros/8",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"codigo_libro\": \"L001\",\n  \"titulo\": \"Cien años de soledad - Edición Actualizada\",\n  \"autor\": \"Gabriel García Márquez\",\n  \"area\": \"Literatura\",\n  \"anio_publicacion\": 1967,\n  \"estado\": \"activo\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "29"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"1d-hN77IP+LUnRMebpA1hOrGfv2VJI\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:43:21 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 29,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Libro eliminado\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 28.278000000000002,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Eliminar libro"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 11.321,
+				"request": {
+					"method": "POST",
+					"url": "http://localhost:3000/libros",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"codigo_libro\": \"L006\",\n  \"titulo\": \"Node.js Profesional\",\n  \"autor\": \"Juan Pérez\",\n  \"area\": \"Programación\",\n  \"anio_publicacion\": 2023,\n  \"estado\": \"activo\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 201,
+					"statusText": "Created",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "40"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"28-ymDJK680GtMMnXnNwJmPfyXX6Q8\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:39:33 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 40,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"message\":\"Libro creado\",\"id_libro\":10}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 11.321,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Crear libro"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 3.6319999999999997,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros/1",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "application/json",
+						"text": "{\n  \"codigo_libro\": \"L006\",\n  \"titulo\": \"Node.js Profesional\",\n  \"autor\": \"Juan Pérez\",\n  \"area\": \"Programación\",\n  \"anio_publicacion\": 2023,\n  \"estado\": \"activo\"\n}"
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "166"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"a6-g78NuBGUufRpOwJbYGnVj3HyoiI\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:38:41 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 166,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "{\"id_libro\":1,\"codigo_libro\":\"L001\",\"titulo\":\"Cien años de soledad\",\"autor\":\"Gabriel García Márquez\",\"area\":\"Literatura\",\"anio_publicacion\":1967,\"estado\":\"activo\"}"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 3.6319999999999997,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Filtrar por id"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 21.971,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros?area=Programaci%C3%B3n",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "156"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"9c-PLxrAjX05P9BazzGk/dlFt/uHOg\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:34:09 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 156,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_libro\":7,\"codigo_libro\":\"L006\",\"titulo\":\"Node.js Profesional\",\"autor\":\"Juan Pérez\",\"area\":\"Programación\",\"anio_publicacion\":2023,\"estado\":\"activo\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 21.971,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Filtrar por area"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 10.351,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros?autor=Rowling",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "168"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"a8-3yH05p4XCAipgN5m5CjbuTDjhCw\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:32:40 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 168,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_libro\":4,\"codigo_libro\":\"L004\",\"titulo\":\"Harry Potter y la piedra filosofal\",\"autor\":\"J.K. Rowling\",\"area\":\"Fantasía\",\"anio_publicacion\":1997,\"estado\":\"activo\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 10.351,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Filtrar por autor "
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 11.313,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros?titulo=Harry",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "168"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"a8-3yH05p4XCAipgN5m5CjbuTDjhCw\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:31:18 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 168,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_libro\":4,\"codigo_libro\":\"L004\",\"titulo\":\"Harry Potter y la piedra filosofal\",\"autor\":\"J.K. Rowling\",\"area\":\"Fantasía\",\"anio_publicacion\":1997,\"estado\":\"activo\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 11.313,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "Filtrar por titulo"
+			},
+			{
+				"startedDateTime": "2026-02-22T03:17:30.646Z",
+				"time": 41.427,
+				"request": {
+					"method": "GET",
+					"url": "http://localhost:3000/libros",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "User-Agent",
+							"value": "insomnia/12.3.1"
+						}
+					],
+					"queryString": [],
+					"postData": {
+						"mimeType": "",
+						"text": ""
+					},
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"response": {
+					"status": 200,
+					"statusText": "OK",
+					"httpVersion": "HTTP/1.1",
+					"cookies": [],
+					"headers": [
+						{
+							"name": "X-Powered-By",
+							"value": "Express"
+						},
+						{
+							"name": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"name": "Content-Type",
+							"value": "application/json; charset=utf-8"
+						},
+						{
+							"name": "Content-Length",
+							"value": "1151"
+						},
+						{
+							"name": "ETag",
+							"value": "W/\"47f-q5CYobh+TOa8Mo+lRtUFcmWz9fE\""
+						},
+						{
+							"name": "Date",
+							"value": "Sun, 22 Feb 2026 02:24:26 GMT"
+						},
+						{
+							"name": "Connection",
+							"value": "keep-alive"
+						},
+						{
+							"name": "Keep-Alive",
+							"value": "timeout=5"
+						}
+					],
+					"content": {
+						"size": 1151,
+						"mimeType": "application/json; charset=utf-8",
+						"text": "[{\"id_libro\":1,\"codigo_libro\":\"L001\",\"titulo\":\"Cien años de soledad\",\"autor\":\"Gabriel García Márquez\",\"area\":\"Literatura\",\"anio_publicacion\":1967,\"estado\":\"activo\"},{\"id_libro\":2,\"codigo_libro\":\"L002\",\"titulo\":\"El principito\",\"autor\":\"Antoine de Saint-Exupéry\",\"area\":\"Infantil\",\"anio_publicacion\":1943,\"estado\":\"activo\"},{\"id_libro\":3,\"codigo_libro\":\"L003\",\"titulo\":\"Don Quijote de la Mancha\",\"autor\":\"Miguel de Cervantes\",\"area\":\"Clásicos\",\"anio_publicacion\":1901,\"estado\":\"activo\"},{\"id_libro\":4,\"codigo_libro\":\"L004\",\"titulo\":\"Harry Potter y la piedra filosofal\",\"autor\":\"J.K. Rowling\",\"area\":\"Fantasía\",\"anio_publicacion\":1997,\"estado\":\"activo\"},{\"id_libro\":5,\"codigo_libro\":\"L001\",\"titulo\":\"Cien años de soledad - Edición Actualizada\",\"autor\":\"Gabriel García Márquez\",\"area\":\"Literatura\",\"anio_publicacion\":1967,\"estado\":\"activo\"},{\"id_libro\":7,\"codigo_libro\":\"L006\",\"titulo\":\"Node.js Profesional\",\"autor\":\"Juan Pérez\",\"area\":\"Programación\",\"anio_publicacion\":2023,\"estado\":\"activo\"},{\"id_libro\":8,\"codigo_libro\":\"L007\",\"titulo\":\"Node.js Profional\",\"autor\":\"Ju Pérez\",\"area\":\"Progmación\",\"anio_publicacion\":2013,\"estado\":\"activo\"}]"
+					},
+					"redirectURL": "",
+					"headersSize": -1,
+					"bodySize": -1
+				},
+				"cache": {},
+				"timings": {
+					"blocked": -1,
+					"dns": -1,
+					"connect": -1,
+					"send": 0,
+					"wait": 41.427,
+					"receive": 0,
+					"ssl": -1
+				},
+				"comment": "GET - Obtener todos los libros"
+			}
+		]
+	}
+}
