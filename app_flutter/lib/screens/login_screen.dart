@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import '../providers/session_provider.dart';
 import '../services/auth_service.dart';
 import 'admin_dashboard.dart';
-import 'student_dashboard.dart';
-import 'teacher_dashboard.dart';
+import 'user_dashboard.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -44,21 +44,25 @@ class _LoginScreenState extends State<LoginScreen> {
           userName: result['nombre'],
           userRole: result['rol'],
           token: result['token'],
+          userId: result['id']?.toString(),
         );
         if (!mounted) return;
         // La navegacion interna que depende del rol
         if (result['rol'] == 'estudiante') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) =>
-                  StudentDashboard(userName: result['nombre']),
+              builder: (context) => StudentDashboard(
+                userName: result['nombre'],
+                rol: result['rol'],
+              ),
             ),
           );
         } else if (result['rol'] == 'profesor') {
           Navigator.of(context).pushReplacement(
             MaterialPageRoute(
-              builder: (context) =>
-                  TeacherDashboard(userName: result['nombre']),
+              builder: (context) => StudentDashboard(
+                userName: result['nombre'],
+                rol: result['rol'],),
             ),
           );
         } else if (result['rol'] == 'administrador' ||

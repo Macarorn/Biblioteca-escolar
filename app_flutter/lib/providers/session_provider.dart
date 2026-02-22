@@ -7,12 +7,14 @@ class SessionProvider extends ChangeNotifier {
   String _userName = '';
   String _userRole = '';
   String _token = '';
+  String _userId = '';
   bool _isAuthenticated = false;
 
   // ── Getters ──
   String get userName => _userName;
   String get userRole => _userRole;
   String get token => _token;
+  String get userId => _userId;
   bool get isAuthenticated => _isAuthenticated;
 
   // ── Atajos de rol ──
@@ -28,10 +30,12 @@ class SessionProvider extends ChangeNotifier {
     required String userName,
     required String userRole,
     required String token,
+    String? userId,
   }) {
     _userName = userName;
     _userRole = userRole;
     _token = token;
+    _userId = userId ?? '';
     _isAuthenticated = true;
     notifyListeners();
   }
