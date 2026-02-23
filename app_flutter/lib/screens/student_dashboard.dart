@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/libros_service.dart';
 import '../widgets/change_password_dialog.dart';
 import 'book_detail_screen.dart';
 import 'login_screen.dart';
@@ -15,36 +17,13 @@ class StudentDashboard extends StatefulWidget {
 class _StudentDashboardState extends State<StudentDashboard> {
   int _selectedIndex = 0;
 
-  final List<Map<String, dynamic>> _books = [
-    {
-      'title': 'Cien Años de Soledad',
-      'author': 'Gabriel García Márquez',
-      'category': 'Literatura',
-      'available': 3,
-      'total': 5,
-    },
-    {
-      'title': 'Don Quijote de la Mancha',
-      'author': 'Miguel de Cervantes',
-      'category': 'Literatura',
-      'available': 2,
-      'total': 4,
-    },
-    {
-      'title': 'Física para Secundaria',
-      'author': 'Antonio López',
-      'category': 'Ciencias',
-      'available': 5,
-      'total': 6,
-    },
-    {
-      'title': 'Historia Universal',
-      'author': 'Laura Fernández',
-      'category': 'Historia',
-      'available': 0,
-      'total': 3,
-    },
-  ];
+  // Servicio y estado de carga
+  late LibrosService _librosService;
+  bool _dataLoaded = false;
+  bool _isLoadingBooks = false;
+
+  // Lista de libros obtenida desde la API
+  List<Map<String, dynamic>> _books = [];
 
   @override
   void initState() {
@@ -53,6 +32,55 @@ class _StudentDashboardState extends State<StudentDashboard> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // _showChangePasswordDialog(mandatory: true);
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_dataLoaded) {
+      _dataLoaded = true;
+      _librosService = context.read<LibrosService>();
+      _loadBooks();
+    }
+  }
+
+  int _toInt(dynamic value, [int fallback = 0]) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? fallback;
+    return fallback;
+  }
+
+  Future<void> _loadBooks() async {
+    setState(() => _isLoadingBooks = true);
+    try {
+      final libros = await _librosService.getLibros();
+      final books = <Map<String, dynamic>>[];
+      for (final libro in libros) {
+        Map<String, dynamic> disp = {'total': 0, 'disponibles': 0};
+        try {
+          disp = await _librosService.getDisponibilidad(libro['id_libro']);
+        } catch (_) {}
+        books.add({
+          ...libro,
+          'id_libro': _toInt(libro['id_libro']),
+          'title': libro['titulo'] ?? '',
+          'author': libro['autor'] ?? '',
+          'category': libro['area'] ?? '',
+          'available': _toInt(disp['disponibles']),
+          'total': _toInt(disp['total']),
+        });
+      }
+      if (mounted) setState(() => _books = books);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al cargar libros: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoadingBooks = false);
+    }
   }
 
   void _showChangePasswordDialog({bool mandatory = false}) {
@@ -411,10 +439,12 @@ class _StudentDashboardState extends State<StudentDashboard> {
         ),
         const SizedBox(height: 24),
         Expanded(
-          child: ListView.separated(
-            itemCount: _books.length,
-            separatorBuilder: (c, i) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
+          child: _isLoadingBooks
+              ? const Center(child: CircularProgressIndicator())
+              : ListView.separated(
+                  itemCount: _books.length,
+                  separatorBuilder: (c, i) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
               final book = _books[index];
               return GestureDetector(
                 onTap: () {
