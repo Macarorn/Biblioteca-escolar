@@ -1,12 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'dart:math';
+import 'dart:async';
 import 'package:provider/provider.dart';
 import '../services/libros_service.dart';
 import '../widgets/change_password_dialog.dart';
 import 'book_detail_screen.dart';
 import 'login_screen.dart';
-
-
 
 class AdminDashboard extends StatefulWidget {
   /// El nombre del usuario actualmente conectado.
@@ -36,6 +35,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   int _selectedIndex = 0;
   int _booksTabIndex = 0;
+  Timer? _solicitudesTimer;
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _userSearchController = TextEditingController();
   final TextEditingController _loanDateFromController = TextEditingController();
@@ -115,7 +115,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-  
+      // iniciar polling cada 10 segundos para refrescar las solicitudes automáticamente
+      _solicitudesTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+        if (mounted) _loadSolicitudes();
+      });
     });
   }
 
@@ -283,6 +286,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   @override
   void dispose() {
+    _solicitudesTimer?.cancel();
     _searchController.dispose();
     _userSearchController.dispose();
     _loanDateFromController.dispose();

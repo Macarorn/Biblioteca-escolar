@@ -22,6 +22,7 @@ class AuthService {
       _api.setToken(data['token']);
       return {
         'success': true,
+        'id': data['usuario']['id'],
         'nombre': data['usuario']['nombre'],
         'rol': data['usuario']['tipo_usuario'],
         'token': data['token'],
