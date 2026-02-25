@@ -117,7 +117,60 @@ class BookCard extends StatelessWidget {
                     ),
                     onPressed: onRequest == null
                         ? null
-                        : () => onRequest!(id, title),
+                        : () => showDialog(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                backgroundColor: const Color(0xFFF3EFE7),
+                                title: const Text(
+                                  'Confirmar Solicitud',
+                                  style: TextStyle(color: Color(0xFF4E342E)),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      '¿Deseas solicitar el préstamo de este libro?',
+                                      style: TextStyle(color: Color(0xFF4E342E)),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF4E342E),
+                                      ),
+                                    ),
+                                    Text(
+                                      author,
+                                      style: const TextStyle(
+                                        color: Color(0xFF8B8B8B),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: const Text(
+                                      'Cancelar',
+                                      style: TextStyle(color: Color(0xFF4E342E)),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF8B7355),
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    onPressed: () {
+                                      Navigator.pop(ctx);
+                                      onRequest!(id, title);
+                                    },
+                                    child: const Text('Solicitar'),
+                                  ),
+                                ],
+                              ),
+                            ),
                     child: const Text(
                       "Solicitar",
                       style: TextStyle(fontSize: 13, color: Color(0xFFDCD2C9)),
